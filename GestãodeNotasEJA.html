@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DE GESTÃO DE NOTAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Cor de Destaque (Amarelo Ouro) */
+            --primary: #F2C94C;
+            --primary-dark: #E0B849;
+            
+            /* Cores de Estado */
+            --success: #28A745;
+            --success-dark: #218838;
+            --danger: #D73A49;
+            --danger-dark: #B02A37;
+            --warning: #F2994A; /* Laranja para se diferenciar do amarelo */
+            --warning-dark: #E68A42;
+            
+            /* Tema Claro */
+            --light-bg: #F7F9FC;
+            --light-card: #FFFFFF;
+            --light-border: #E1E4E8;
+            --light-text: #242A31;
+            --light-text-secondary: #6A737D;
+            --light-shadow: rgba(36, 42, 49, 0.1);
+
+            /* Tema Escuro */
+            --dark-bg: #1C2128;
+            --dark-card: #22272E;
+            --dark-border: #373E47;
+            --dark-text: #E6EDF3;
+            --dark-text-secondary: #909DAB;
+            --dark-shadow: rgba(0, 0, 0, 0.3);
+            
+            /* Variáveis Dinâmicas */
+            --bg-color: var(--light-bg);
+            --card-color: var(--light-card);
+            --border-color: var(--light-border);
+            --text-color: var(--light-text);
+            --text-secondary-color: var(--light-text-secondary);
+            --shadow-color: var(--light-shadow);
+        }
+        .dark-mode {
+            --bg-color: var(--dark-bg);
+            --card-color: var(--dark-card);
+            --border-color: var(--dark-border);
+            --text-color: var(--dark-text);
+            --text-secondary-color: var(--dark-text-secondary);
+            --shadow-color: var(--dark-shadow);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--light-text); padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 6px 12px var(--shadow-color); text-align: center; }
+        header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        header p { font-size: 1.1rem; opacity: 0.9; }
+        .card { background: var(--card-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 8px var(--shadow-color); transition: background-color 0.3s; }
+        .card h2 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); }
+        input, select, textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); border-radius: 8px; font-size: 1rem; transition: all 0.3s; }
+        textarea { min-height: 150px; font-family: monospace; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.25); }
+        button { background-color: var(--primary); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.2s; margin: 5px; }
+        button.btn-primary { color: var(--light-text); }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { background-color: #95a5a6; cursor: not-allowed; transform: none; }
+        .btn-success { background-color: var(--success); } .btn-success:hover { background-color: var(--success-dark); }
+        .btn-danger { background-color: var(--danger); } .btn-danger:hover { background-color: var(--danger-dark); }
+        .btn-warning { background-color: var(--warning); } .btn-warning:hover { background-color: var(--warning-dark); }
+        .btn-secondary { background-color: var(--text-secondary-color); } .btn-secondary:hover { background-color: var(--text-color); }
+        .btn-small { padding: 8px 12px; font-size: 0.9rem; }
+        .grid { display: grid; gap: 20px; }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--bg-color); color: var(--text-color); font-weight: 600; cursor: pointer; user-select: none; }
+        th:hover { color: var(--primary); }
+        .sort-asc::after { content: ' ▲'; } .sort-desc::after { content: ' ▼'; }
+        tr:hover { background-color: rgba(242, 201, 76, 0.07); }
+        .status-Aprovado { color: var(--success); font-weight: 600; } .status-Reprovado { color: var(--danger); font-weight: 600; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { background: var(--card-color); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; margin: 10px 0; }
+        .stat-aprovados { color: var(--success); } .stat-reprovados { color: var(--danger); } .stat-media { color: var(--primary); }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .hidden { display: none !important; }
+        .disciplina-section { margin-bottom: 30px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; }
+        .disciplina-header { background: var(--primary); color: var(--light-text); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .remove-disciplina { background: var(--danger); }
+        .bimestre-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); flex-wrap: wrap; }
+        .bimestre-tab { padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; }
+        .bimestre-tab.active { border-bottom: 3px solid var(--primary); color: var(--primary); font-weight: 600; }
+        .total-display { background-color: var(--bg-color); font-weight: 600; color: var(--text-color); }
+        .config-box { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        #approvalRuleSummary { background-color: #FFF9E6; border-left: 5px solid var(--primary); padding: 15px; margin-top: 10px; font-weight: 600; color: #B89007; border-radius: 5px; }
+        .dark-mode #approvalRuleSummary { background-color: rgba(242, 201, 76, 0.1); color: var(--dark-text-secondary); border-left-color: var(--primary);}
+        .alert { padding: 15px; border-radius: 8px; margin: 10px 0; font-weight: 600; border: 1px solid transparent; }
+        .alert-success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .dark-mode .alert-success { background-color: #1e4620; color: #a3d9a5; border-color: #2e6b30; }
+        .dark-mode .alert-error { background-color: #58151c; color: #f1b0b7; border-color: #842029; }
+        .add-disciplina-section { background: var(--bg-color); border: 2px dashed var(--success); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-color); padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; text-align: center; transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.visible .modal { transform: scale(1); }
+        #detailsModal .modal, #boletimModal .modal, #importModal .modal { max-width: 800px; text-align: left; }
+        .modal h3 { margin-bottom: 15px; color: var(--primary); }
+        .modal p { margin-bottom: 25px; color: var(--text-secondary-color); }
+        .modal-buttons { display: flex; justify-content: center; gap: 15px; }
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 10px; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 48px; }
+        .theme-switch input { display:none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
+        .slider:before { background-color: #fff; bottom: 2px; content: ""; height: 20px; left: 2px; position: absolute; transition: .4s; width: 20px; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
+        #boletimContent, #importPreview { text-align: left; }
+        #boletimContent table, #importPreview table { width: 100%; margin-top: 15px; }
+        #boletimContent th, #boletimContent td, #importPreview th, #importPreview td { padding: 8px; border: 1px solid var(--border-color); }
+        #boletimContent th, #importPreview th { background-color: var(--bg-color); }
+        .boletim-header { margin-bottom: 20px; }
+        .boletim-footer { margin-top: 20px; font-weight: bold; text-align: right; }
+        #importInstructions { padding: 15px; background: var(--bg-color); border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; word-break: break-all; }
+        #importPreview tr.error-row { background-color: rgba(215, 58, 73, 0.1); }
+        #importPreview td.error-cell { color: var(--danger); font-weight: bold; }
+        .main-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .main-tab { padding: 10px 20px; cursor: pointer; font-weight: 600; color: var(--text-secondary-color); border-bottom: 3px solid transparent; }
+        .main-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .search-results { max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; margin-top: -10px; }
+        .search-result-item { padding: 10px; cursor: pointer; }
+        .search-result-item:hover { background-color: rgba(242, 201, 76, 0.1); }
+        .search-result-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        @media print { body * { visibility: hidden; } #boletimModal, #boletimModal * { visibility: visible; } #boletimModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; } #boletimModal .modal-buttons { display: none; } #boletimModal .modal { box-shadow: none; border: 1px solid #000; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SISTEMA DE GESTÃO DE NOTAS</h1>
+            <p>Controle e acompanhamento do desempenho dos alunos</p>
+        </header>
+        <div class="header-controls"><div class="theme-switch-wrapper"><span>☀️</span><label class="theme-switch" for="darkModeToggle"><input type="checkbox" id="darkModeToggle" /><span class="slider round"></span></label><span>🌙</span></div></div>
+        <div id="alertContainer"></div>
+        
+        <div class="card">
+            <h2>⚙️ Configuração do Sistema</h2>
+            <div class="grid grid-2">
+                <div class="config-box">
+                    <h3>🗓️ Estrutura do Ano Letivo</h3>
+                    <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="2"></div>
+                    <h3>💯 Pontuação por Disciplina (em cada bimestre)</h3>
+                    <div class="grid grid-3">
+                        <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="15.0"></div>
+                        <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="15.0"></div>
+                        <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="20.0"></div>
+                    </div>
+                </div>
+                <div class="config-box">
+                    <h3>📊 Critérios de Aprovação</h3>
+                    <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR Bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="30.0"></div>
+                    <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60.0"></div>
+                    <div id="approvalRuleSummary"></div>
+                </div>
+            </div>
+            <button id="aplicarConfig" class="btn-success">💾 Aplicar e Recarregar</button>
+        </div>
+        
+        <div class="card">
+            <div class="main-tabs">
+                <div class="main-tab active" data-tab="add">➕ Adicionar Novo Aluno</div>
+                <div class="main-tab" data-tab="edit">✏️ Editar Aluno Existente</div>
+            </div>
+
+            <div id="add-student-pane" class="main-tab-pane">
+                <h2>👨‍🎓 Adicionar Aluno</h2>
+                <form id="addStudentForm">
+                    <div class="grid grid-2"><div class="form-group"><label for="add-studentName">Nome *</label><input type="text" id="add-studentName" required></div><div class="form-group"><label for="add-studentId">Matrícula *</label><input type="text" id="add-studentId" required></div></div>
+                    <div class="add-disciplina-section"><h3>➕ Adicionar Disciplina</h3><div class="grid grid-2"><div class="form-group"><label for="novaDisciplina">Nome da Disciplina</label><input type="text" id="novaDisciplina"></div><div class="form-group" style="align-self: end;"><button type="button" id="adicionarDisciplina" class="btn-success">➕ Adicionar</button></div></div></div>
+                    <div class="bimestre-tabs" id="add-bimestreTabsContainer"></div>
+                    <div id="add-bimestresContentContainer"></div>
+                    <div class="grid grid-2" style="margin-top: 20px;">
+                        <div class="form-group"><label>Total de Pontos Anual</label><input type="text" id="add-totalGeral" class="total-display" readonly></div>
+                        <div class="form-group"><label>Status Final</label><input type="text" id="add-statusFinal" class="total-display" readonly></div>
+                    </div>
+                    <div class="form-group"><button type="submit" class="btn-success">💾 Salvar Novo Aluno</button><button type="button" id="add-clearForm" class="btn-danger">🗑️ Limpar</button></div>
+                </form>
+            </div>
+
+            <div id="edit-student-pane" class="main-tab-pane hidden">
+                <h2>✏️ Editar Aluno</h2>
+                <div class="form-group">
+                    <label for="edit-studentSearch">Buscar Aluno por Nome ou Matrícula</label>
+                    <input type="text" id="edit-studentSearch" autocomplete="off">
+                    <div id="edit-searchResults" class="search-results"></div>
+                </div>
+                <form id="editStudentForm" class="hidden">
+                     <div class="grid grid-2"><div class="form-group"><label for="edit-studentName">Nome *</label><input type="text" id="edit-studentName" required></div><div class="form-group"><label for="edit-studentId">Matrícula *</label><input type="text" id="edit-studentId" required readonly></div></div>
+                    <div class="bimestre-tabs" id="edit-bimestreTabsContainer"></div>
+                    <div id="edit-bimestresContentContainer"></div>
+                    <div class="grid grid-2" style="margin-top: 20px;">
+                        <div class="form-group"><label>Total de Pontos Anual</label><input type="text" id="edit-totalGeral" class="total-display" readonly></div>
+                        <div class="form-group"><label>Status Final</label><input type="text" id="edit-statusFinal" class="total-display" readonly></div>
+                    </div>
+                    <div class="form-group"><button type="submit" class="btn-success">💾 Atualizar Aluno</button><button type="button" id="edit-clearForm" class="btn-danger">🗑️ Limpar Seleção</button></div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Lista de Alunos</h2>
+            <div class="form-group"><label for="searchStudent">🔎 Buscar</label><input type="text" id="searchStudent" placeholder="Nome ou matrícula..."></div>
+            <div class="table-responsive"><table id="studentsTable"><thead><tr><th data-sort="name">Nome</th><th data-sort="studentId">Matrícula</th><th data-sort="totalFaltas">Faltas</th><th data-sort="totalGeral">Pontos</th><th data-sort="status.text">Status</th><th>Ações</th></tr></thead><tbody id="studentsList"></tbody></table></div>
+            <div id="emptyMessage" class="alert hidden">Nenhum aluno cadastrado.</div>
+        </div>
+
+        <div class="card"><h2>📈 Relatórios Avançados</h2><div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div><div class="chart-container"><canvas id="advancedReportChart"></canvas></div></div>
+        <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
+        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar em Massa</button><button id="clearAllData" class="btn-danger">🗑️ Limpar Tudo</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
+    </div>
+
+    <div id="modal" class="modal-overlay"><div class="modal"><h3 id="modalTitle"></h3><p id="modalMessage"></p><div class="modal-buttons"><button id="modalConfirm" class="btn-danger">Confirmar</button><button id="modalCancel" class="btn-secondary">Cancelar</button></div></div></div>
+    <div id="detailsModal" class="modal-overlay"><div class="modal"><h3 id="detailsModalTitle"></h3><p id="detailsModalSubtitle"></p><div class="chart-container"><canvas id="studentChart"></canvas></div><div class="modal-buttons"><button id="detailsModalClose" class="btn-secondary">Fechar</button></div></div></div>
+    <div id="boletimModal" class="modal-overlay"><div class="modal"><div id="boletimContent"></div><div class="modal-buttons"><button id="printBoletim" class="btn-success">🖨️ Imprimir</button><button id="boletimModalClose" class="btn-secondary">Fechar</button></div></div></div>
+    <div id="importModal" class="modal-overlay"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. Use ponto (.) para decimais e separe colunas com ponto e vírgula (;).</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45.5;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
+
+    <script>
+        const STORAGE_KEY_PREFIX = 'sistema_academico_pro_v1_';
+        const THEME_KEY = `${STORAGE_KEY_PREFIX}theme`;
+        let state = { students: [], disciplinas: ['Português', 'Matemática'], studentToEdit: null, sort: { column: 'name', order: 'asc' },
+            config: { numBimestres: 2, maxAtividade: 15.0, maxTrabalho: 15.0, maxProva: 20.0, minNotaBimestre: 30.0, minNotaTotal: 60.0 },
+            studentChart: null, advancedReportChart: null, parsedStudents: []
+        };
+        const doc = (s) => document.querySelector(s);
+        const docAll = (s) => document.querySelectorAll(s);
+        const toId = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+        function getStorageKey(key) { return `${STORAGE_KEY_PREFIX}${key}_${state.config.numBimestres}b`; }
+        function loadData() {
+            try {
+                const configData = localStorage.getItem(`${STORAGE_KEY_PREFIX}config`);
+                if(configData) state.config = { ...state.config, ...JSON.parse(configData) };
+                
+                const s = localStorage.getItem(getStorageKey('students')); const d = localStorage.getItem(`${STORAGE_KEY_PREFIX}disciplinas`);
+                if (s) state.students = JSON.parse(s); if (d) state.disciplinas = JSON.parse(d);
+                const t = localStorage.getItem(THEME_KEY);
+                if (t === 'dark') { doc('body').classList.add('dark-mode'); doc('#darkModeToggle').checked = true; }
+            } catch (e) { console.error("Erro ao carregar:", e); showAlert('Erro ao carregar dados.', 'error'); }
+        }
+        function saveData() {
+            try {
+                localStorage.setItem(getStorageKey('students'), JSON.stringify(state.students));
+                localStorage.setItem(`${STORAGE_KEY_PREFIX}disciplinas`, JSON.stringify(state.disciplinas));
+                localStorage.setItem(`${STORAGE_KEY_PREFIX}config`, JSON.stringify(state.config));
+                return true;
+            } catch (e) { console.error("Erro ao salvar:", e); showAlert('Erro ao salvar dados.', 'error'); return false; }
+        }
+
+        function calculateTotalsAndStatus(studentData) {
+            let totalGeral = 0; let totalFaltas = 0; let abaixoMinimoBimestre = false;
+            for (let i = 0; i < state.config.numBimestres; i++) {
+                let totalBimestre = 0;
+                (studentData.disciplinas || state.disciplinas).forEach(d => {
+                    const nota = studentData.bimestres[i]?.[toId(d)];
+                    if (nota) { totalBimestre += nota.total || 0; totalFaltas += nota.faltas || 0; }
+                });
+                totalGeral += totalBimestre;
+                if (totalBimestre < state.config.minNotaBimestre) abaixoMinimoBimestre = true;
+            }
+            const status = (totalGeral >= state.config.minNotaTotal && !abaixoMinimoBimestre) ? 'Aprovado' : 'Reprovado';
+            return { totalGeral: totalGeral.toFixed(1), totalFaltas, status: { text: status } };
+        }
+        function updateFormTotals(prefix) {
+            const studentData = { bimestres: [], disciplinas: state.disciplinas }; let totalGeral = 0;
+            for (let i = 0; i < state.config.numBimestres; i++) {
+                studentData.bimestres[i] = {}; let totalBimestre = 0;
+                state.disciplinas.forEach(d => { const id = toId(d);
+                    const atv = parseFloat(doc(`#${prefix}-${id}${i}_atividade`)?.value)||0; const trb = parseFloat(doc(`#${prefix}-${id}${i}_trabalho`)?.value)||0; const prv = parseFloat(doc(`#${prefix}-${id}${i}_prova`)?.value)||0;
+                    const total = Math.min(atv+trb+prv, state.config.maxAtividade+state.config.maxTrabalho+state.config.maxProva);
+                    if(doc(`#${prefix}-${id}${i}_total`)) doc(`#${prefix}-${id}${i}_total`).value = total.toFixed(1);
+                    totalBimestre += total;
+                });
+                totalGeral += totalBimestre;
+            }
+            doc(`#${prefix}-totalGeral`).value = totalGeral.toFixed(1);
+            const {status} = calculateTotalsAndStatus(studentData);
+            doc(`#${prefix}-statusFinal`).value = status.text; doc(`#${prefix}-statusFinal`).className = `total-display status-${status.text}`;
+        }
+        function showAlert(msg, type = 'success') {
+            const container = doc('#alertContainer'); const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`; alert.textContent = msg;
+            container.innerHTML = ''; container.appendChild(alert); setTimeout(() => alert.remove(), 5000);
+        }
+        function showModal(id, onConfirm) {
+            const modal = doc(id); modal.classList.add('visible');
+            const confirmBtn = doc(`${id}Confirm`); const cancelBtn = doc(`${id}Cancel`) || doc(`${id}Close`);
+            const hide = () => { modal.classList.remove('visible'); if(confirmBtn) confirmBtn.onclick=null; if(cancelBtn) cancelBtn.onclick=null; modal.onclick=null; };
+            if (confirmBtn) confirmBtn.onclick = () => { onConfirm(); hide(); };
+            if(cancelBtn) cancelBtn.onclick = hide; 
+            modal.onclick = (e) => { if(e.target === modal) hide(); };
+        }
+
+        function renderStudents() {
+            const list = doc('#studentsList'); list.innerHTML = ''; const q = doc('#searchStudent').value.toLowerCase();
+            const filtered = state.students.filter(s => s.name.toLowerCase().includes(q) || s.studentId.includes(q));
+            const sorted = [...filtered].sort((a, b) => {
+                const get = (obj, path) => path.split('.').reduce((o, i) => o[i], obj);
+                const valA = get(a, state.sort.column); const valB = get(b, state.sort.column);
+                if (typeof valA === 'string') return state.sort.order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                return state.sort.order === 'asc' ? valA - valB : valB - valA;
+            });
+            doc('#emptyMessage').classList.toggle('hidden', sorted.length > 0);
+            sorted.forEach(s => {
+                const idx = state.students.findIndex(st => st.studentId === s.studentId);
+                const row = list.insertRow();
+                row.innerHTML = `<td>${s.name}</td><td>${s.studentId}</td><td>${s.totalFaltas || 0}</td><td>${s.totalGeral}</td><td class="status-${s.status.text}">${s.status.text}</td>
+                    <td class="actions"><button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim">📄</button><button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico">📊</button><button class="btn-small" data-action="edit" data-index="${idx}" title="Editar">✏️</button><button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir">🗑️</button></td>`;
+            });
+        }
+        function renderFormStructure(prefix) {
+            const tabsContainer = doc(`#${prefix}-bimestreTabsContainer`);
+            const contentContainer = doc(`#${prefix}-bimestresContentContainer`);
+            tabsContainer.innerHTML = ''; contentContainer.innerHTML = '';
+            for (let i = 0; i < state.config.numBimestres; i++) {
+                tabsContainer.innerHTML += `<div class="bimestre-tab ${i === 0 ? 'active' : ''}" data-bimestre="${i}" data-prefix="${prefix}">${i+1}º Bimestre</div>`;
+                contentContainer.innerHTML += `<div id="${prefix}-bimestre${i}" class="bimestre-content ${i > 0 ? 'hidden' : ''}"><h3>📊 Notas do ${i+1}º Bimestre</h3><div id="${prefix}-disciplinasBimestre${i}"></div></div>`;
+            }
+            renderDisciplinas(prefix);
+        }
+        function renderDisciplinas(prefix) {
+            for (let i = 0; i < state.config.numBimestres; i++) {
+                const container = doc(`#${prefix}-disciplinasBimestre${i}`);
+                if(!container) continue;
+                container.innerHTML = '';
+                state.disciplinas.forEach(nome => { const id = toId(nome);
+                    const section = document.createElement('div'); section.className = 'disciplina-section';
+                    section.innerHTML = `<div class="disciplina-header"><h4>${nome}</h4><button type="button" class="remove-disciplina btn-small" data-disciplina="${nome}">🗑️</button></div>
+                        <div class="grid grid-5">
+                            <div class="form-group"><label>Ativ.</label><input type="number" id="${prefix}-${id}${i}_atividade" class="nota-input" min="0" step="0.1" value="0"></div>
+                            <div class="form-group"><label>Trab.</label><input type="number" id="${prefix}-${id}${i}_trabalho" class="nota-input" min="0" step="0.1" value="0"></div>
+                            <div class="form-group"><label>Prova</label><input type="number" id="${prefix}-${id}${i}_prova" class="nota-input" min="0" step="0.1" value="0"></div>
+                            <div class="form-group"><label>Faltas</label><input type="number" id="${prefix}-${id}${i}_faltas" class="nota-input" min="0" step="1" value="0"></div>
+                            <div class="form-group"><label>Total</label><input type="text" id="${prefix}-${id}${i}_total" class="total-display" readonly value="0.0"></div>
+                        </div>`;
+                    container.appendChild(section);
+                });
+            }
+            addDynamicInputListeners(prefix);
+        }
+        function updateStatistics() {
+            const { students } = state; doc('#totalStudents').textContent = students.length;
+            if (students.length === 0) { doc('#classAverage').textContent = '0.0'; doc('#approvedStudents').textContent = '0'; doc('#failedStudents').textContent = '0'; return; }
+            const total = students.reduce((sum, s) => sum + parseFloat(s.totalGeral), 0);
+            doc('#classAverage').textContent = (total / students.length).toFixed(1);
+            doc('#approvedStudents').textContent = students.filter(s => s.status.text === 'Aprovado').length;
+            doc('#failedStudents').textContent = students.filter(s => s.status.text === 'Reprovado').length;
+        }
+        function showStudentDetails(index) {
+            const student = state.students[index];
+            doc('#detailsModalTitle').textContent = student.name; doc('#detailsModalSubtitle').textContent = `Matrícula: ${student.studentId} | Status: ${student.status.text}`;
+            if(state.studentChart) state.studentChart.destroy();
+            state.studentChart = new Chart(doc('#studentChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels: state.disciplinas, datasets: Array.from({length: state.config.numBimestres}, (_, i) => ({
+                    label: `${i+1}º Bimestre`,
+                    data: state.disciplinas.map(d => student.bimestres[i]?.[toId(d)]?.total || 0),
+                    backgroundColor: `hsl(${45 + i*40}, 70%, 60%)`
+                }))},
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva } } }
+            });
+            showModal('#detailsModal');
+        }
+        function showBoletim(index) {
+            const student = state.students[index];
+            let headerCols = ''; let bodyRows = '';
+            for(let i=0; i < state.config.numBimestres; i++) headerCols += `<th>Nota ${i+1}ºB</th><th>Faltas ${i+1}ºB</th>`;
+            state.disciplinas.forEach(d => {
+                let rowData = `<td>${d}</td>`;
+                for(let i=0; i < state.config.numBimestres; i++) {
+                    const nota = student.bimestres[i]?.[toId(d)] || {};
+                    rowData += `<td>${(nota.total||0).toFixed(1)}</td><td>${nota.faltas||0}</td>`;
+                }
+                bodyRows += `<tr>${rowData}</tr>`;
+            });
+            const content = `<div class="boletim-header"><h3>Boletim do Aluno</h3><p><strong>Aluno:</strong> ${student.name}<br><strong>Matrícula:</strong> ${student.studentId}</p></div>
+                <table><thead><tr><th>Disciplina</th>${headerCols}</tr></thead><tbody>${bodyRows}</tbody></table>
+                <div class="boletim-footer"><p>Total Pontos: ${student.totalGeral} | Total Faltas: ${student.totalFaltas || 0} | Status Final: ${student.status.text}</p></div>`;
+            doc('#boletimContent').innerHTML = content; showModal('#boletimModal');
+        }
+        function renderAdvancedReports() {
+            const select = doc('#reportSubject'); select.innerHTML = state.disciplinas.map(d => `<option value="${d}">${d}</option>`).join('');
+            if (state.disciplinas.length > 0) updateAdvancedChart(state.disciplinas[0]);
+        }
+        function updateAdvancedChart(subjectName) {
+            const subjectId = toId(subjectName);
+            const maxScoreBimestre = state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva;
+            const maxScoreTotal = maxScoreBimestre * state.config.numBimestres;
+            const ranges = { '0-20%': 0, '21-40%': 0, '41-60%': 0, '61-80%': 0, '81-100%': 0 };
+            state.students.forEach(s => {
+                let totalNota = 0;
+                for(let i=0; i < state.config.numBimestres; i++) totalNota += s.bimestres[i]?.[subjectId]?.total || 0;
+                const percent = (totalNota / maxScoreTotal) * 100;
+                if (percent <= 20) ranges['0-20%']++; else if (percent <= 40) ranges['21-40%']++;
+                else if (percent <= 60) ranges['41-60%']++; else if (percent <= 80) ranges['61-80%']++; else ranges['81-100%']++;
+            });
+            if(state.advancedReportChart) state.advancedReportChart.destroy();
+            state.advancedReportChart = new Chart(doc('#advancedReportChart').getContext('2d'), { type: 'bar',
+                data: { labels: Object.keys(ranges), datasets: [{ label: `Notas em ${subjectName}`, data: Object.values(ranges), backgroundColor: ['#D73A49', '#F2994A', '#F2994A', '#28A745', '#F2C94C'] }]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+            });
+        }
+        function handleAddStudentSubmit(e) {
+            e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.textContent = 'Salvando...'; btn.disabled = true;
+            const name = doc('#add-studentName').value.trim(); const studentId = doc('#add-studentId').value.trim();
+            if (!name || !studentId) { showAlert('Nome e matrícula são obrigatórios.', 'error'); btn.textContent = '💾 Salvar Novo Aluno'; btn.disabled = false; return; }
+            if (state.students.some(s => s.studentId === studentId)) { showAlert('Matrícula já existe!', 'error'); btn.textContent = '💾 Salvar Novo Aluno'; btn.disabled = false; return; }
+            
+            const studentData = { name, studentId, bimestres: [], disciplinas: state.disciplinas };
+            for(let i=0; i < state.config.numBimestres; i++) {
+                studentData.bimestres[i] = {};
+                state.disciplinas.forEach(d => { const id = toId(d); studentData.bimestres[i][id] = {
+                    atividade: parseFloat(doc(`#add-${id}${i}_atividade`).value)||0, trabalho: parseFloat(doc(`#add-${id}${i}_trabalho`).value)||0,
+                    prova: parseFloat(doc(`#add-${id}${i}_prova`).value)||0, total: parseFloat(doc(`#add-${id}${i}_total`).value)||0,
+                    faltas: parseInt(doc(`#add-${id}${i}_faltas`).value) || 0 };
+                });
+            }
+            const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
+            const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+            state.students.push(finalStudent); showAlert(`"${name}" cadastrado!`);
+            if (saveData()) { renderStudents(); updateStatistics(); renderAdvancedReports(); doc('#addStudentForm').reset(); updateFormTotals('add'); }
+            btn.textContent = '💾 Salvar Novo Aluno'; btn.disabled = false;
+        }
+        function handleUpdateStudentSubmit(e) {
+            e.preventDefault(); if (!state.studentToEdit) return;
+            const btn = e.target.querySelector('button[type="submit"]'); btn.textContent = 'Atualizando...'; btn.disabled = true;
+            const name = doc('#edit-studentName').value.trim(); const studentId = doc('#edit-studentId').value.trim();
+            const studentData = { name, studentId, bimestres: [], disciplinas: state.disciplinas };
+            for(let i=0; i < state.config.numBimestres; i++) {
+                studentData.bimestres[i] = {};
+                state.disciplinas.forEach(d => { const id = toId(d); studentData.bimestres[i][id] = {
+                    atividade: parseFloat(doc(`#edit-${id}${i}_atividade`).value)||0, trabalho: parseFloat(doc(`#edit-${id}${i}_trabalho`).value)||0,
+                    prova: parseFloat(doc(`#edit-${id}${i}_prova`).value)||0, total: parseFloat(doc(`#edit-${id}${i}_total`).value)||0,
+                    faltas: parseInt(doc(`#edit-${id}${i}_faltas`).value) || 0 };
+                });
+            }
+            const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
+            const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+            const studentIndex = state.students.findIndex(s => s.studentId === state.studentToEdit.studentId);
+            if(studentIndex > -1) {
+                state.students[studentIndex] = finalStudent;
+                showAlert(`"${name}" atualizado!`);
+            }
+            if (saveData()) { renderStudents(); updateStatistics(); renderAdvancedReports(); clearEditForm(); }
+            btn.textContent = '💾 Atualizar Aluno'; btn.disabled = false;
+        }
+
+        function handleTableClick(e) {
+            const target = e.target.closest('button'); if (!target) return;
+            const action = target.dataset.action; const index = parseInt(target.dataset.index);
+            if(action === 'details') showStudentDetails(index); else if (action === 'boletim') showBoletim(index);
+            else if (action === 'edit') {
+                switchTab('edit');
+                const student = state.students[index];
+                doc('#edit-studentSearch').value = student.name;
+                populateEditForm(student);
+
+            } else if (action === 'delete') {
+                const s = state.students[index];
+                doc('#modalTitle').textContent = 'Excluir Aluno'; doc('#modalMessage').textContent = `Excluir "${s.name}"?`;
+                showModal('#modal', () => {
+                    state.students.splice(index, 1);
+                    if(saveData()) { renderStudents(); updateStatistics(); renderAdvancedReports(); showAlert(`"${s.name}" excluído!`); }
+                });
+            }
+        }
+        function handleSort(e) {
+            const column = e.target.dataset.sort; if (!column) return;
+            if (state.sort.column === column) state.sort.order = state.sort.order === 'asc' ? 'desc' : 'asc';
+            else { state.sort.column = column; state.sort.order = 'asc'; }
+            docAll('#studentsTable th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+            e.target.classList.add(state.sort.order === 'asc' ? 'sort-asc' : 'sort-desc');
+            renderStudents();
+        }
+        function handleDisciplinaRemove(e) {
+            const nome = e.target.dataset.disciplina;
+            doc('#modalTitle').textContent = 'Remover Disciplina'; doc('#modalMessage').textContent = `Remover "${nome}"?`;
+            showModal('#modal', () => {
+                state.disciplinas = state.disciplinas.filter(d => d !== nome);
+                state.students.forEach(s => s.bimestres.forEach(b => delete b[toId(nome)]));
+                saveData(); 
+                renderDisciplinas('add');
+                renderDisciplinas('edit');
+                updateFormTotals('add');
+                if(state.studentToEdit) updateFormTotals('edit');
+                renderAdvancedReports();
+                showAlert(`"${nome}" removida!`);
+            });
+        }
+        function addDynamicInputListeners(prefix) {
+            docAll(`#${prefix}-student-pane .nota-input, #${prefix}-student-pane .remove-disciplina`).forEach(el => { 
+                el.removeEventListener('input', () => updateFormTotals(prefix)); 
+                el.removeEventListener('click', handleDisciplinaRemove);
+            });
+            docAll(`#${prefix}-student-pane .nota-input`).forEach(el => el.addEventListener('input', () => updateFormTotals(prefix)));
+            docAll(`#add-student-pane .remove-disciplina`).forEach(el => el.addEventListener('click', handleDisciplinaRemove));
+        }
+        function handleImport(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try { const data = JSON.parse(event.target.result);
+                    if (data.students && data.config && data.disciplinas) {
+                        doc('#modalTitle').textContent = 'Importar Backup'; doc('#modalMessage').textContent = 'Isso substituirá os dados. Continuar?';
+                        showModal('#modal', () => { state.students = data.students; state.config = data.config; state.disciplinas = data.disciplinas; saveData(); window.location.reload(); });
+                    } else { showAlert('Arquivo de backup inválido.', 'error'); }
+                } catch (err) { showAlert('Erro ao ler o arquivo.', 'error'); }
+            };
+            reader.readAsText(file); e.target.value = '';
+        }
+        function updateConfigSummary() {
+            const {numBimestres, minNotaBimestre, minNotaTotal} = state.config;
+            doc('#approvalRuleSummary').innerHTML = `<strong>Regra Atual:</strong> Para ser aprovado, o aluno precisa de no mínimo <strong>${minNotaBimestre}</strong> pontos em cada um dos <strong>${numBimestres}</strong> bimestres E um total de <strong>${minNotaTotal}</strong> pontos no ano.`;
+        }
+        function handleBulkDataParse() {
+            const text = doc('#bulkDataInput').value.trim();
+            const expectedCols = 2 + (state.disciplinas.length * 2 * state.config.numBimestres);
+            state.parsedStudents = [];
+            const rows = text.split('\n').filter(r => r.trim() !== '');
+            let hasErrors = false;
+            let previewHTML = `<p>${rows.length} linha(s) detectada(s).</p><table><thead><tr><th>Matrícula</th><th>Nome</th><th>Status</th><th>Detalhes</th></tr></thead><tbody>`;
+
+            rows.forEach(row => {
+                const cols = row.split(';').map(c => c.trim());
+                let student = { valid: false, error: '', data: {} };
+                if (cols.length !== expectedCols) { student.error = `Número de colunas incorreto. Esperado: ${expectedCols}, Encontrado: ${cols.length}.`; } 
+                else {
+                    student.data = { studentId: cols[0], name: cols[1], bimestres: Array.from({length: state.config.numBimestres}, () => ({})) };
+                    let validRow = true;
+                    if (!student.data.studentId || !student.data.name) { student.error = 'Matrícula e Nome são obrigatórios.'; validRow = false; }
+                    if (validRow) {
+                        let colIndex = 2;
+                        for (let i = 0; i < state.config.numBimestres; i++) {
+                            for (const disciplina of state.disciplinas) {
+                                const nota = parseFloat(cols[colIndex].replace(',', '.')); const faltas = parseInt(cols[colIndex + 1]);
+                                if (isNaN(nota) || isNaN(faltas) || nota < 0 || faltas < 0) { student.error = `Dado inválido para ${disciplina} no ${i+1}º B.`; validRow = false; break; }
+                                student.data.bimestres[i][toId(disciplina)] = { total: nota, faltas: faltas }; colIndex += 2;
+                            }
+                            if (!validRow) break;
+                        }
+                    }
+                    student.valid = validRow;
+                }
+                if (!student.valid) hasErrors = true;
+                previewHTML += `<tr class="${!student.valid ? 'error-row' : ''}"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>${student.valid ? '✔️ Válido' : '❌ Erro'}</td><td class="error-cell">${student.error}</td></tr>`;
+                state.parsedStudents.push(student);
+            });
+            previewHTML += '</tbody></table>';
+            doc('#importPreview').innerHTML = previewHTML;
+            doc('#importModalConfirm').disabled = hasErrors || rows.length === 0;
+        }
+        function confirmBulkImport() {
+            let addedCount = 0; let updatedCount = 0;
+            state.parsedStudents.forEach(p => { if(!p.valid) return;
+                const studentData = p.data;
+                const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
+                const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+                const existingIndex = state.students.findIndex(s => s.studentId === finalStudent.studentId);
+                if (existingIndex > -1) { state.students[existingIndex] = finalStudent; updatedCount++; } 
+                else { state.students.push(finalStudent); addedCount++; }
+            });
+            if (saveData()) { renderStudents(); updateStatistics(); renderAdvancedReports(); showAlert(`${addedCount} adicionado(s), ${updatedCount} atualizado(s).`, 'success'); }
+        }
+        function switchTab(tabName) {
+            docAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+            docAll('.main-tab-pane').forEach(p => p.classList.toggle('hidden', p.id !== `${tabName}-student-pane`));
+        }
+        function clearEditForm() {
+            doc('#editStudentForm').classList.add('hidden');
+            doc('#editStudentForm').reset();
+            doc('#edit-studentSearch').value = '';
+            doc('#edit-searchResults').innerHTML = '';
+            state.studentToEdit = null;
+        }
+        function populateEditForm(student) {
+            state.studentToEdit = student;
+            doc('#edit-studentName').value = student.name;
+            doc('#edit-studentId').value = student.studentId;
+            for(let i=0; i<state.config.numBimestres; i++) {
+                state.disciplinas.forEach(d => {
+                    const id = toId(d); const n = student.bimestres[i]?.[id] || {};
+                    doc(`#edit-${id}${i}_atividade`).value = n.atividade||0; doc(`#edit-${id}${i}_trabalho`).value = n.trabalho||0; 
+                    doc(`#edit-${id}${i}_prova`).value = n.prova||0; doc(`#edit-${id}${i}_faltas`).value = n.faltas||0;
+                });
+            }
+            updateFormTotals('edit');
+            doc('#edit-searchResults').innerHTML = '';
+            doc('#edit-searchResults').classList.add('hidden');
+            doc('#editStudentForm').classList.remove('hidden');
+        }
+        
+        function init() {
+            loadData();
+            doc('#numBimestres').value = state.config.numBimestres; doc('#maxAtividade').value = state.config.maxAtividade; doc('#maxTrabalho').value = state.config.maxTrabalho;
+            doc('#maxProva').value = state.config.maxProva; doc('#minNotaBimestre').value = state.config.minNotaBimestre; doc('#minNotaTotal').value = state.config.minNotaTotal;
+            updateConfigSummary(); 
+            renderFormStructure('add');
+            renderFormStructure('edit');
+            renderStudents(); updateStatistics(); renderAdvancedReports(); updateFormTotals('add');
+            
+            doc('#addStudentForm').addEventListener('submit', handleAddStudentSubmit);
+            doc('#editStudentForm').addEventListener('submit', handleUpdateStudentSubmit);
+            doc('#add-clearForm').addEventListener('click', () => { doc('#addStudentForm').reset(); updateFormTotals('add'); });
+            doc('#edit-clearForm').addEventListener('click', clearEditForm);
+
+            doc('#studentsList').addEventListener('click', handleTableClick); doc('#studentsTable thead').addEventListener('click', handleSort);
+            doc('#searchStudent').addEventListener('input', renderStudents);
+            doc('#aplicarConfig').addEventListener('click', () => {
+                state.config.numBimestres = parseInt(doc('#numBimestres').value) || 2;
+                state.config.maxAtividade = parseFloat(doc('#maxAtividade').value)||0; state.config.maxTrabalho = parseFloat(doc('#maxTrabalho').value)||0;
+                state.config.maxProva = parseFloat(doc('#maxProva').value)||0; state.config.minNotaBimestre = parseFloat(doc('#minNotaBimestre').value)||0;
+                state.config.minNotaTotal = parseFloat(doc('#minNotaTotal').value)||0;
+                localStorage.setItem(`${STORAGE_KEY_PREFIX}config`, JSON.stringify(state.config));
+                localStorage.removeItem(getStorageKey('students'));
+                showAlert('Configurações salvas! Alunos zerados. A página será recarregada.'); setTimeout(() => window.location.reload(), 2000);
+            });
+            doc('#adicionarDisciplina').addEventListener('click', () => {
+                const nome = doc('#novaDisciplina').value.trim();
+                if (nome && !state.disciplinas.find(d => d.toLowerCase() === nome.toLowerCase())) {
+                    state.disciplinas.push(nome); saveData(); renderDisciplinas('add'); renderDisciplinas('edit'); renderAdvancedReports(); doc('#novaDisciplina').value = '';
+                } else { showAlert('Nome da disciplina inválido ou já existe.', 'error'); }
+            });
+            docAll('.bimestre-tabs').forEach(tabs => tabs.addEventListener('click', (e) => {
+                if(e.target.matches('.bimestre-tab')) {
+                    const bim = e.target.dataset.bimestre;
+                    const prefix = e.target.dataset.prefix;
+                    docAll(`#${prefix}-bimestreTabsContainer .bimestre-tab`).forEach(t => t.classList.remove('active'));
+                    docAll(`#${prefix}-bimestresContentContainer .bimestre-content`).forEach(c => c.classList.add('hidden'));
+                    e.target.classList.add('active'); doc(`#${prefix}-bimestre${bim}`).classList.remove('hidden');
+                }
+            }));
+            doc('.main-tabs').addEventListener('click', (e) => { if (e.target.matches('.main-tab')) switchTab(e.target.dataset.tab); });
+            doc('#darkModeToggle').addEventListener('change', (e) => { doc('body').classList.toggle('dark-mode', e.target.checked); localStorage.setItem(THEME_KEY, e.target.checked ? 'dark' : 'light'); });
+            doc('#exportCSV').addEventListener('click', () => {
+                if (state.students.length === 0) return showAlert('Sem dados para exportar.', 'error');
+                let csv = "Nome,Matrícula,Faltas,Pontos,Status\n";
+                state.students.forEach(s => { csv += `"${s.name}",${s.studentId},${s.totalFaltas||0},${s.totalGeral},${s.status.text}\n`; });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob); link.download = `notas_${new Date().toISOString().slice(0,10)}.csv`; link.click();
+            });
+            doc('#backupData').addEventListener('click', () => {
+                const backup = { students: state.students, config: state.config, disciplinas: state.disciplinas };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+                link.download = `backup_notas_${new Date().toISOString().slice(0,10)}.json`; link.click();
+            });
+            doc('#clearAllData').addEventListener('click', () => {
+                doc('#modalTitle').textContent = 'Limpar Tudo'; doc('#modalMessage').textContent = `Excluir ${state.students.length} aluno(s)?`;
+                showModal('#modal', () => { state.students = []; state.disciplinas = ['Português', 'Matemática']; saveData(); window.location.reload(); });
+            });
+            doc('#importData').addEventListener('click', () => doc('#importFile').click());
+            doc('#importFile').addEventListener('change', handleImport);
+            doc('#printBoletim').addEventListener('click', () => window.print());
+            doc('#reportSubject').addEventListener('change', (e) => updateAdvancedChart(e.target.value));
+            docAll('#numBimestres, #minNotaBimestre, #minNotaTotal').forEach(el => el.addEventListener('input', updateConfigSummary));
+            doc('#importBulkData').addEventListener('click', () => {
+                let headers = ['Matrícula', 'Nome'];
+                for(let i=0; i<state.config.numBimestres; i++) {
+                    state.disciplinas.forEach(d => headers.push(`${d} (Nota ${i+1}B)`, `${d} (Faltas ${i+1}B)`));
+                }
+                doc('#importInstructions').innerHTML = `<p><strong>Formato esperado (${headers.length} colunas):</strong><br>${headers.join('; ')}</p>`;
+                doc('#importPreview').innerHTML = ''; doc('#bulkDataInput').value = ''; doc('#importModalConfirm').disabled = true; showModal('#importModal');
+            });
+            doc('#bulkDataInput').addEventListener('input', handleBulkDataParse);
+            doc('#importModalConfirm').addEventListener('click', confirmBulkImport);
+
+            doc('#edit-studentSearch').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const resultsContainer = doc('#edit-searchResults');
+                if (!query) { resultsContainer.innerHTML = ''; resultsContainer.classList.add('hidden'); return; }
+                const results = state.students.filter(s => s.name.toLowerCase().includes(query) || s.studentId.toLowerCase().includes(query));
+                resultsContainer.innerHTML = results.map(s => `<div class="search-result-item" data-id="${s.studentId}"><strong>${s.name}</strong> (${s.studentId})</div>`).join('');
+                resultsContainer.classList.toggle('hidden', results.length === 0);
+            });
+            doc('#edit-searchResults').addEventListener('click', (e) => {
+                const item = e.target.closest('.search-result-item');
+                if(item) {
+                    const student = state.students.find(s => s.studentId === item.dataset.id);
+                    if(student) populateEditForm(student);
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
+
