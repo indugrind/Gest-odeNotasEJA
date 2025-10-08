@@ -272,18 +272,18 @@
             <div class="grid grid-2">
                 <div class="config-box">
                     <h3>🗓️ Estrutura do Ano Letivo</h3>
-                    <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="2"></div>
+                    <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="1"></div>
                     <h3>💯 Pontuação por Disciplina (em cada bimestre)</h3>
                     <div class="grid grid-3">
-                        <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="15.0"></div>
-                        <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="15.0"></div>
-                        <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="20.0"></div>
+                        <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="0"></div>
+                        <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="0"></div>
+                        <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="10"></div>
                     </div>
                 </div>
                 <div class="config-box">
                     <h3>📊 Critérios de Aprovação</h3>
-                    <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR Bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="30.0"></div>
-                    <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60.0"></div>
+                    <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR Bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="6"></div>
+                    <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60"></div>
                     <div id="approvalRuleSummary"></div>
                 </div>
             </div>
@@ -349,12 +349,12 @@
         <div class="card">
             <h2>📋 Lista de Alunos</h2>
             <div class="form-group"><label for="searchStudent">🔎 Buscar</label><input type="text" id="searchStudent" placeholder="Nome ou matrícula..."></div>
-            <div class="table-responsive"><table id="studentsTable"><thead><tr><th data-sort="name">Nome</th><th data-sort="studentId">Matrícula</th><th data-sort="totalFaltas">Faltas</th><th data-sort="totalGeral">Pontos</th><th data-sort="status.text">Status</th><th>Ações</th></tr></thead><tbody id="studentsList"></tbody></table></div>
+            <div class="table-responsive"><table id="studentsTable"><thead><tr><th data-sort="name">Nome</th><th data-sort="studentId">Matrícula</th><th data-sort="totalFaltas">Faltas</th><th data-sort="totalGeral">Pontos</th><th data-sort="average">Média (0-10)</th><th data-sort="status.text">Status</th><th>Ações</th></tr></thead><tbody id="studentsList"></tbody></table></div>
             <div id="emptyMessage" class="alert hidden">Nenhum aluno cadastrado.</div>
         </div>
 
         <div class="card"><h2>📈 Relatórios Avançados</h2><div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div><div class="chart-container"><canvas id="advancedReportChart"></canvas></div></div>
-        <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
+        <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma (0-10)</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
         <div class="card">
             <h2>💾 Dados</h2>
             <p class="text-secondary-color" style="margin-top: -15px; margin-bottom: 15px;">Use as funções abaixo para salvar ou carregar todos os dados do sistema de uma só vez.</p>
@@ -362,9 +362,11 @@
                 <button id="exportCSV" class="btn-success">📄 Exportar CSV</button>
                 <button id="backupData" class="btn-success">💾 Fazer Backup</button>
                 <button id="importData" class="btn-warning">📥 Importar Backup</button>
+                <button id="importSimpleJson" class="btn-warning">📄 Importar JSON Simplificado</button>
                 <button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button>
             </div>
             <input type="file" id="importFile" class="hidden" accept=".json">
+            <input type="file" id="importSimpleJsonFile" class="hidden" accept=".json">
         </div>
     </div>
 
@@ -378,12 +380,17 @@
         const STORAGE_KEY_PREFIX = 'sistema_academico_pro_v1_';
         const THEME_KEY = `${STORAGE_KEY_PREFIX}theme`;
         let state = { students: [], disciplinas: ['Português', 'Matemática'], studentToEdit: null, sort: { column: 'name', order: 'asc' },
-            config: { numBimestres: 2, maxAtividade: 15.0, maxTrabalho: 15.0, maxProva: 20.0, minNotaBimestre: 30.0, minNotaTotal: 60.0 },
+            config: { numBimestres: 1, maxAtividade: 0, maxTrabalho: 0, maxProva: 10, minNotaBimestre: 6, minNotaTotal: 60 },
             studentChart: null, advancedReportChart: null, parsedStudents: []
         };
         const doc = (s) => document.querySelector(s);
         const docAll = (s) => document.querySelectorAll(s);
         const toId = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+        function getMaxPossibleScore() {
+            const maxScorePerBimestre = state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva;
+            return maxScorePerBimestre * state.config.numBimestres * state.disciplinas.length;
+        }
 
         function getStorageKey(key) { return `${STORAGE_KEY_PREFIX}${key}_${state.config.numBimestres}b`; }
         function loadData() {
@@ -408,6 +415,8 @@
 
         function calculateTotalsAndStatus(studentData) {
             let totalGeral = 0; let totalFaltas = 0; let abaixoMinimoBimestre = false;
+            const maxScorePerBimestre = state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva;
+
             for (let i = 0; i < state.config.numBimestres; i++) {
                 let totalBimestre = 0;
                 (studentData.disciplinas || state.disciplinas).forEach(d => {
@@ -422,9 +431,12 @@
                     abaixoMinimoBimestre = true;
                 }
             }
+            
+            const maxScoreTotalPossible = maxScorePerBimestre * state.config.numBimestres * state.disciplinas.length;
+            const average = maxScoreTotalPossible > 0 ? (totalGeral / maxScoreTotalPossible) * 10 : 0;
 
             if (totalGeral === 0) {
-                return { totalGeral: '0.0', totalFaltas, status: { text: '-', class: '' } };
+                return { totalGeral: '0.0', totalFaltas, status: { text: '-', class: '' }, average };
             }
 
             const isAprovado = (totalGeral >= state.config.minNotaTotal && !abaixoMinimoBimestre);
@@ -432,7 +444,7 @@
                 text: isAprovado ? 'Aprovado' : 'Reprovado',
                 class: isAprovado ? 'status-Aprovado' : 'status-Reprovado'
             };
-            return { totalGeral: totalGeral.toFixed(1), totalFaltas, status };
+            return { totalGeral: totalGeral.toFixed(1), totalFaltas, status, average };
         }
         function updateFormTotals(prefix) {
             const studentData = { bimestres: [], disciplinas: state.disciplinas };
@@ -487,7 +499,7 @@
             sorted.forEach(s => {
                 const idx = state.students.findIndex(st => st.studentId === s.studentId);
                 const row = list.insertRow();
-                row.innerHTML = `<td>${s.name}</td><td>${s.studentId}</td><td>${s.totalFaltas || 0}</td><td>${s.totalGeral}</td><td class="${s.status.class || ''}">${s.status.text}</td>
+                row.innerHTML = `<td>${s.name}</td><td>${s.studentId}</td><td>${s.totalFaltas || 0}</td><td>${s.totalGeral}</td><td>${(s.average || 0).toFixed(1)}</td><td class="${s.status.class || ''}">${s.status.text}</td>
                     <td class="actions"><button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim">📄</button><button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico">📊</button><button class="btn-small" data-action="edit" data-index="${idx}" title="Editar">✏️</button><button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir">🗑️</button></td>`;
             });
         }
@@ -522,10 +534,19 @@
             addDynamicInputListeners(prefix);
         }
         function updateStatistics() {
-            const { students } = state; doc('#totalStudents').textContent = students.length;
-            if (students.length === 0) { doc('#classAverage').textContent = '0.0'; doc('#approvedStudents').textContent = '0'; doc('#failedStudents').textContent = '0'; return; }
-            const total = students.reduce((sum, s) => sum + parseFloat(s.totalGeral), 0);
-            doc('#classAverage').textContent = (total / students.length).toFixed(1);
+            const { students } = state;
+            doc('#totalStudents').textContent = students.length;
+            if (students.length === 0) {
+                doc('#classAverage').textContent = '0.0';
+                doc('#approvedStudents').textContent = '0';
+                doc('#failedStudents').textContent = '0';
+                return;
+            }
+
+            const totalAverageSum = students.reduce((sum, s) => sum + (s.average || 0), 0);
+            const classAverage = totalAverageSum / students.length;
+
+            doc('#classAverage').textContent = classAverage.toFixed(1);
             doc('#approvedStudents').textContent = students.filter(s => s.status.text === 'Aprovado').length;
             doc('#failedStudents').textContent = students.filter(s => s.status.text === 'Reprovado').length;
         }
@@ -558,7 +579,7 @@
             });
             const content = `<div class="boletim-header"><h3>Boletim do Aluno</h3><p><strong>Aluno:</strong> ${student.name}<br><strong>Matrícula:</strong> ${student.studentId}</p></div>
                 <div class="table-responsive"><table><thead><tr><th>Disciplina</th>${headerCols}</tr></thead><tbody>${bodyRows}</tbody></table></div>
-                <div class="boletim-footer"><p>Total Pontos: ${student.totalGeral} | Total Faltas: ${student.totalFaltas || 0} | Status Final: ${student.status.text}</p></div>`;
+                <div class="boletim-footer"><p>Total Pontos: ${student.totalGeral} | Média Final: ${(student.average || 0).toFixed(1)} | Total Faltas: ${student.totalFaltas || 0} | Status Final: ${student.status.text}</p></div>`;
             doc('#boletimContent').innerHTML = content; showModal('#boletimModal');
         }
         function renderAdvancedReports() {
@@ -598,8 +619,8 @@
                     faltas: parseInt(doc(`#add-${id}${i}_faltas`).value) || 0 };
                 });
             }
-            const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
-            const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+            const { totalGeral, totalFaltas, status, average } = calculateTotalsAndStatus(studentData);
+            const finalStudent = { ...studentData, totalGeral, totalFaltas, status, average };
             state.students.push(finalStudent); showAlert(`"${name}" cadastrado!`);
             if (saveData()) { renderStudents(); updateStatistics(); renderAdvancedReports(); doc('#addStudentForm').reset(); updateFormTotals('add'); }
             btn.textContent = '💾 Salvar Novo Aluno'; btn.disabled = false;
@@ -617,8 +638,8 @@
                     faltas: parseInt(doc(`#edit-${id}${i}_faltas`).value) || 0 };
                 });
             }
-            const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
-            const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+            const { totalGeral, totalFaltas, status, average } = calculateTotalsAndStatus(studentData);
+            const finalStudent = { ...studentData, totalGeral, totalFaltas, status, average };
             const studentIndex = state.students.findIndex(s => s.studentId === state.studentToEdit.studentId);
             if(studentIndex > -1) {
                 state.students[studentIndex] = finalStudent;
@@ -682,15 +703,105 @@
             const file = e.target.files[0]; if(!file) return;
             const reader = new FileReader();
             reader.onload = (event) => {
-                try { const data = JSON.parse(event.target.result);
+                try { 
+                    const data = JSON.parse(event.target.result);
                     if (data.students && data.config && data.disciplinas) {
-                        doc('#modalTitle').textContent = 'Importar Backup'; doc('#modalMessage').textContent = 'Isso substituirá os dados. Continuar?';
-                        showModal('#modal', () => { state.students = data.students; state.config = data.config; state.disciplinas = data.disciplinas; saveData(); window.location.reload(); });
-                    } else { showAlert('Arquivo de backup inválido.', 'error'); }
-                } catch (err) { showAlert('Erro ao ler o arquivo.', 'error'); }
+                        doc('#modalTitle').textContent = 'Importar Backup'; 
+                        doc('#modalMessage').textContent = 'Isso substituirá todos os dados atuais. Continuar?';
+                        showModal('#modal', () => {
+                            try {
+                                localStorage.setItem(`${STORAGE_KEY_PREFIX}config`, JSON.stringify(data.config));
+                                localStorage.setItem(`${STORAGE_KEY_PREFIX}disciplinas`, JSON.stringify(data.disciplinas));
+                                
+                                const newStudentKey = `${STORAGE_KEY_PREFIX}students_${data.config.numBimestres}b`;
+                                localStorage.setItem(newStudentKey, JSON.stringify(data.students));
+                                
+                                showAlert('Dados importados com sucesso! A página será recarregada.');
+                                setTimeout(() => window.location.reload(), 1500);
+                            } catch (err) {
+                                showAlert('Ocorreu um erro ao salvar os dados importados.', 'error');
+                                console.error("Save Import Error:", err);
+                            }
+                        });
+                    } else { 
+                        showAlert('Arquivo de backup inválido ou corrompido.', 'error'); 
+                    }
+                } catch (err) { 
+                    showAlert('Erro ao ler o arquivo. Verifique se é um JSON válido.', 'error');
+                    console.error("Import Parse Error:", err);
+                }
             };
-            reader.readAsText(file); e.target.value = '';
+            reader.readAsText(file); 
+            e.target.value = '';
         }
+        function handleSimpleJsonImport(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try { 
+                    const data = JSON.parse(event.target.result);
+                    if (!Array.isArray(data) || data.length === 0) {
+                        showAlert('Arquivo JSON simplificado inválido. Esperado um array de alunos.', 'error');
+                        return;
+                    }
+
+                    const firstStudent = data[0];
+                    const disciplinas = Object.keys(firstStudent).filter(k => k !== 'Aluno');
+                    const numAlunos = data.length;
+
+                    doc('#modalTitle').textContent = 'Importar JSON Simplificado'; 
+                    doc('#modalMessage').textContent = `${numAlunos} alunos e ${disciplinas.length} disciplinas foram detectados. Isso substituirá todos os dados atuais e adaptará as notas à configuração de pontuação atual. Continuar?`;
+
+                    showModal('#modal', () => {
+                        state.disciplinas = disciplinas;
+                        
+                        const maxScorePerBimestre = state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva;
+
+                        state.students = data.map((alunoData, index) => {
+                            const student = {
+                                name: alunoData.Aluno,
+                                studentId: `matricula_${Date.now() + index}`, 
+                                disciplinas: disciplinas,
+                                bimestres: Array.from({ length: state.config.numBimestres }, () => ({}))
+                            };
+
+                            disciplinas.forEach(d => {
+                                const notaJson = parseFloat(alunoData[d]) || 0;
+                                const scaledTotal = maxScorePerBimestre > 0 ? (notaJson / 10) * maxScorePerBimestre : 0;
+                                student.bimestres[0][toId(d)] = {
+                                    atividade: 0,
+                                    trabalho: 0,
+                                    prova: scaledTotal,
+                                    total: scaledTotal,
+                                    faltas: 0
+                                };
+                            });
+
+                             for (let i = 1; i < state.config.numBimestres; i++) {
+                                disciplinas.forEach(d => {
+                                    student.bimestres[i][toId(d)] = { atividade: 0, trabalho: 0, prova: 0, total: 0, faltas: 0 };
+                                });
+                            }
+
+                            const { totalGeral, totalFaltas, status, average } = calculateTotalsAndStatus(student);
+                            return { ...student, totalGeral, totalFaltas, status, average };
+                        });
+
+                        if (saveData()) {
+                            showAlert('Dados importados com sucesso! A página será recarregada.');
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
+                    });
+
+                } catch (err) { 
+                    showAlert('Erro ao processar o arquivo JSON simplificado.', 'error');
+                    console.error("Simple JSON Import Error:", err);
+                }
+            };
+            reader.readAsText(file); 
+            e.target.value = '';
+        }
+
         function updateConfigSummary() {
             const {numBimestres, minNotaBimestre, minNotaTotal} = state.config;
             doc('#approvalRuleSummary').innerHTML = `<strong>Regra Atual:</strong> Para ser aprovado, o aluno precisa de no mínimo <strong>${minNotaBimestre}</strong> pontos em cada um dos <strong>${numBimestres}</strong> bimestres E um total de <strong>${minNotaTotal}</strong> pontos no ano.`;
@@ -747,8 +858,8 @@
             let addedCount = 0; let updatedCount = 0;
             state.parsedStudents.forEach(p => { if(!p.valid) return;
                 const studentData = p.data;
-                const { totalGeral, totalFaltas, status } = calculateTotalsAndStatus(studentData);
-                const finalStudent = { ...studentData, totalGeral, totalFaltas, status };
+                const { totalGeral, totalFaltas, status, average } = calculateTotalsAndStatus(studentData);
+                const finalStudent = { ...studentData, totalGeral, totalFaltas, status, average };
                 const existingIndex = state.students.findIndex(s => s.studentId === finalStudent.studentId);
                 if (existingIndex > -1) { state.students[existingIndex] = finalStudent; updatedCount++; } 
                 else { state.students.push(finalStudent); addedCount++; }
@@ -883,8 +994,8 @@
             doc('#darkModeToggle').addEventListener('change', (e) => { doc('body').classList.toggle('dark-mode', e.target.checked); localStorage.setItem(THEME_KEY, e.target.checked ? 'dark' : 'light'); });
             doc('#exportCSV').addEventListener('click', () => {
                 if (state.students.length === 0) return showAlert('Sem dados para exportar.', 'error');
-                let csv = "Nome,Matrícula,Faltas,Pontos,Status\n";
-                state.students.forEach(s => { csv += `"${s.name}",${s.studentId},${s.totalFaltas||0},${s.totalGeral},${s.status.text}\n`; });
+                let csv = "Nome,Matrícula,Faltas,Pontos,Média,Status\n";
+                state.students.forEach(s => { csv += `"${s.name}",${s.studentId},${s.totalFaltas||0},${s.totalGeral},${(s.average||0).toFixed(1)},${s.status.text}\n`; });
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob); link.download = `notas_${new Date().toISOString().slice(0,10)}.csv`; link.click();
             });
@@ -896,6 +1007,8 @@
             });
             doc('#importData').addEventListener('click', () => doc('#importFile').click());
             doc('#importFile').addEventListener('change', handleImport);
+            doc('#importSimpleJson').addEventListener('click', () => doc('#importSimpleJsonFile').click());
+            doc('#importSimpleJsonFile').addEventListener('change', handleSimpleJsonImport);
             doc('#printBoletim').addEventListener('click', () => window.print());
             doc('#reportSubject').addEventListener('change', (e) => updateAdvancedChart(e.target.value));
             docAll('#numBimestres, #minNotaBimestre, #minNotaTotal').forEach(el => el.addEventListener('input', updateConfigSummary));
@@ -930,5 +1043,4 @@
     </script>
 </body>
 </html>
-
 
