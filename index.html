@@ -119,7 +119,7 @@
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal { background: var(--card-color); padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; text-align: center; transform: scale(0.9); transition: transform 0.3s; }
         .modal-overlay.visible .modal { transform: scale(1); }
-        #detailsModal .modal, #boletimModal .modal, #importModal .modal { max-width: 800px; text-align: left; }
+        #detailsModal .modal, #boletimModal .modal, #importModal .modal, #disciplinasModal .modal { max-width: 800px; text-align: left; }
         .modal h3 { margin-bottom: 15px; color: var(--primary); }
         .modal p { margin-bottom: 25px; color: var(--text-secondary-color); }
         .modal-buttons { display: flex; justify-content: center; gap: 15px; }
@@ -147,6 +147,9 @@
         .search-result-item { padding: 10px; cursor: pointer; }
         .search-result-item:hover { background-color: rgba(242, 201, 76, 0.1); }
         .search-result-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        #disciplinasList { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; background: var(--bg-color); border-radius: 8px; }
+        .disciplina-tag { background: var(--primary); color: var(--light-text); padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .disciplina-tag button { background: none; border: none; color: inherit; cursor: pointer; padding: 0; margin: 0; font-size: 1.1rem; line-height: 1; }
         
         /* === RESPONSIVIDADE === */
         @media (max-width: 1024px) {
@@ -264,7 +267,7 @@
         <div id="alertContainer"></div>
         
         <div class="card">
-            <h2>⚙️ Configuração do Sistema</h2>
+            <h2>⚙️ Configuração da Turma</h2>
             <div class="grid grid-2">
                 <div class="config-box">
                     <h3>🗓️ Estrutura do Ano Letivo</h3>
@@ -285,6 +288,22 @@
             </div>
             <button id="aplicarConfig" class="btn-success">💾 Aplicar e Recarregar</button>
         </div>
+
+        <div class="card">
+            <h2>📚 Disciplinas da Turma</h2>
+            <p id="disciplinasWarning" class="alert alert-error hidden">Aviso: Modificar as disciplinas irá limpar a lista de alunos e suas notas.</p>
+            <label>Disciplinas Atuais:</label>
+            <div id="disciplinasList"></div>
+            <div class="add-disciplina-section">
+                <div class="grid grid-2">
+                    <div class="form-group"><label for="novaDisciplina">Adicionar Nova Disciplina</label><input type="text" id="novaDisciplina"></div>
+                    <div class="form-group" style="align-self: end;"><button type="button" id="adicionarDisciplina" class="btn-success">➕ Adicionar</button></div>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="bulkAddDisciplinas" class="btn-primary">Adicionar em Massa</button>
+            </div>
+        </div>
         
         <div class="card">
             <div class="main-tabs">
@@ -296,7 +315,6 @@
                 <h2>👨‍🎓 Adicionar Aluno</h2>
                 <form id="addStudentForm">
                     <div class="grid grid-2"><div class="form-group"><label for="add-studentName">Nome *</label><input type="text" id="add-studentName" required></div><div class="form-group"><label for="add-studentId">Matrícula *</label><input type="text" id="add-studentId" required></div></div>
-                    <div class="add-disciplina-section"><h3>➕ Adicionar Disciplina</h3><div class="grid grid-2"><div class="form-group"><label for="novaDisciplina">Nome da Disciplina</label><input type="text" id="novaDisciplina"></div><div class="form-group" style="align-self: end;"><button type="button" id="adicionarDisciplina" class="btn-success">➕ Adicionar</button></div></div></div>
                     <div class="bimestre-tabs" id="add-bimestreTabsContainer"></div>
                     <div id="add-bimestresContentContainer"></div>
                     <div class="grid grid-2" style="margin-top: 20px;">
@@ -336,13 +354,14 @@
 
         <div class="card"><h2>📈 Relatórios Avançados</h2><div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div><div class="chart-container"><canvas id="advancedReportChart"></canvas></div></div>
         <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
-        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar em Massa</button><button id="clearAllData" class="btn-danger">🗑️ Limpar Tudo</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
+        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar Alunos</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
     </div>
 
     <div id="modal" class="modal-overlay"><div class="modal"><h3 id="modalTitle"></h3><p id="modalMessage"></p><div class="modal-buttons"><button id="modalConfirm" class="btn-danger">Confirmar</button><button id="modalCancel" class="btn-secondary">Cancelar</button></div></div></div>
     <div id="detailsModal" class="modal-overlay"><div class="modal"><h3 id="detailsModalTitle"></h3><p id="detailsModalSubtitle"></p><div class="chart-container"><canvas id="studentChart"></canvas></div><div class="modal-buttons"><button id="detailsModalClose" class="btn-secondary">Fechar</button></div></div></div>
     <div id="boletimModal" class="modal-overlay"><div class="modal"><div id="boletimContent"></div><div class="modal-buttons"><button id="printBoletim" class="btn-success">🖨️ Imprimir</button><button id="boletimModalClose" class="btn-secondary">Fechar</button></div></div></div>
     <div id="importModal" class="modal-overlay"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. Use ponto (.) para decimais e separe colunas com ponto e vírgula (;).</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45.5;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
+    <div id="disciplinasModal" class="modal-overlay"><div class="modal"><h3>Adicionar Disciplinas em Massa</h3><p>Cole a lista de disciplinas abaixo, uma por linha. As disciplinas existentes serão substituídas.</p><textarea id="bulkDisciplinasInput"></textarea><div class="modal-buttons"><button id="disciplinasModalConfirm" class="btn-success">Salvar Lista</button><button id="disciplinasModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
 
     <script>
         const STORAGE_KEY_PREFIX = 'sistema_academico_pro_v1_';
@@ -382,29 +401,53 @@
                 let totalBimestre = 0;
                 (studentData.disciplinas || state.disciplinas).forEach(d => {
                     const nota = studentData.bimestres[i]?.[toId(d)];
-                    if (nota) { totalBimestre += nota.total || 0; totalFaltas += nota.faltas || 0; }
+                    if (nota) { 
+                        totalBimestre += nota.total || 0; 
+                        totalFaltas += nota.faltas || 0; 
+                    }
                 });
                 totalGeral += totalBimestre;
-                if (totalBimestre < state.config.minNotaBimestre) abaixoMinimoBimestre = true;
+                if (totalGeral > 0 && totalBimestre < state.config.minNotaBimestre) {
+                    abaixoMinimoBimestre = true;
+                }
             }
-            const status = (totalGeral >= state.config.minNotaTotal && !abaixoMinimoBimestre) ? 'Aprovado' : 'Reprovado';
-            return { totalGeral: totalGeral.toFixed(1), totalFaltas, status: { text: status } };
+
+            if (totalGeral === 0) {
+                return { totalGeral: '0.0', totalFaltas, status: { text: '-', class: '' } };
+            }
+
+            const isAprovado = (totalGeral >= state.config.minNotaTotal && !abaixoMinimoBimestre);
+            const status = {
+                text: isAprovado ? 'Aprovado' : 'Reprovado',
+                class: isAprovado ? 'status-Aprovado' : 'status-Reprovado'
+            };
+            return { totalGeral: totalGeral.toFixed(1), totalFaltas, status };
         }
         function updateFormTotals(prefix) {
-            const studentData = { bimestres: [], disciplinas: state.disciplinas }; let totalGeral = 0;
+            const studentData = { bimestres: [], disciplinas: state.disciplinas };
+            
             for (let i = 0; i < state.config.numBimestres; i++) {
-                studentData.bimestres[i] = {}; let totalBimestre = 0;
-                state.disciplinas.forEach(d => { const id = toId(d);
-                    const atv = parseFloat(doc(`#${prefix}-${id}${i}_atividade`)?.value)||0; const trb = parseFloat(doc(`#${prefix}-${id}${i}_trabalho`)?.value)||0; const prv = parseFloat(doc(`#${prefix}-${id}${i}_prova`)?.value)||0;
-                    const total = Math.min(atv+trb+prv, state.config.maxAtividade+state.config.maxTrabalho+state.config.maxProva);
-                    if(doc(`#${prefix}-${id}${i}_total`)) doc(`#${prefix}-${id}${i}_total`).value = total.toFixed(1);
-                    totalBimestre += total;
+                studentData.bimestres[i] = {};
+                state.disciplinas.forEach(d => { 
+                    const id = toId(d);
+                    const atv = parseFloat(doc(`#${prefix}-${id}${i}_atividade`)?.value) || 0;
+                    const trb = parseFloat(doc(`#${prefix}-${id}${i}_trabalho`)?.value) || 0;
+                    const prv = parseFloat(doc(`#${prefix}-${id}${i}_prova`)?.value) || 0;
+                    const faltas = parseInt(doc(`#${prefix}-${id}${i}_faltas`)?.value) || 0;
+
+                    const total = Math.min(atv + trb + prv, state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva);
+                    
+                    if (doc(`#${prefix}-${id}${i}_total`)) doc(`#${prefix}-${id}${i}_total`).value = total.toFixed(1);
+
+                    studentData.bimestres[i][id] = { total: total, faltas: faltas, atividade: atv, trabalho: trb, prova: prv };
                 });
-                totalGeral += totalBimestre;
             }
-            doc(`#${prefix}-totalGeral`).value = totalGeral.toFixed(1);
-            const {status} = calculateTotalsAndStatus(studentData);
-            doc(`#${prefix}-statusFinal`).value = status.text; doc(`#${prefix}-statusFinal`).className = `total-display status-${status.text}`;
+
+            const { totalGeral, status } = calculateTotalsAndStatus(studentData);
+
+            doc(`#${prefix}-totalGeral`).value = totalGeral;
+            doc(`#${prefix}-statusFinal`).value = status.text;
+            doc(`#${prefix}-statusFinal`).className = `total-display ${status.class || ''}`;
         }
         function showAlert(msg, type = 'success') {
             const container = doc('#alertContainer'); const alert = document.createElement('div');
@@ -433,7 +476,7 @@
             sorted.forEach(s => {
                 const idx = state.students.findIndex(st => st.studentId === s.studentId);
                 const row = list.insertRow();
-                row.innerHTML = `<td>${s.name}</td><td>${s.studentId}</td><td>${s.totalFaltas || 0}</td><td>${s.totalGeral}</td><td class="status-${s.status.text}">${s.status.text}</td>
+                row.innerHTML = `<td>${s.name}</td><td>${s.studentId}</td><td>${s.totalFaltas || 0}</td><td>${s.totalGeral}</td><td class="${s.status.class || ''}">${s.status.text}</td>
                     <td class="actions"><button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim">📄</button><button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico">📊</button><button class="btn-small" data-action="edit" data-index="${idx}" title="Editar">✏️</button><button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir">🗑️</button></td>`;
             });
         }
@@ -454,7 +497,7 @@
                 container.innerHTML = '';
                 state.disciplinas.forEach(nome => { const id = toId(nome);
                     const section = document.createElement('div'); section.className = 'disciplina-section';
-                    section.innerHTML = `<div class="disciplina-header"><h4>${nome}</h4><button type="button" class="remove-disciplina btn-small" data-disciplina="${nome}">🗑️</button></div>
+                    section.innerHTML = `<div class="disciplina-header"><h4>${nome}</h4></div>
                         <div class="grid grid-5">
                             <div class="form-group"><label>Ativ.</label><input type="number" id="${prefix}-${id}${i}_atividade" class="nota-input" min="0" step="0.1" value="0"></div>
                             <div class="form-group"><label>Trab.</label><input type="number" id="${prefix}-${id}${i}_trabalho" class="nota-input" min="0" step="0.1" value="0"></div>
@@ -503,7 +546,7 @@
                 bodyRows += `<tr>${rowData}</tr>`;
             });
             const content = `<div class="boletim-header"><h3>Boletim do Aluno</h3><p><strong>Aluno:</strong> ${student.name}<br><strong>Matrícula:</strong> ${student.studentId}</p></div>
-                <table><thead><tr><th>Disciplina</th>${headerCols}</tr></thead><tbody>${bodyRows}</tbody></table>
+                <div class="table-responsive"><table><thead><tr><th>Disciplina</th>${headerCols}</tr></thead><tbody>${bodyRows}</tbody></table></div>
                 <div class="boletim-footer"><p>Total Pontos: ${student.totalGeral} | Total Faltas: ${student.totalFaltas || 0} | Status Final: ${student.status.text}</p></div>`;
             doc('#boletimContent').innerHTML = content; showModal('#boletimModal');
         }
@@ -601,28 +644,28 @@
             e.target.classList.add(state.sort.order === 'asc' ? 'sort-asc' : 'sort-desc');
             renderStudents();
         }
-        function handleDisciplinaRemove(e) {
-            const nome = e.target.dataset.disciplina;
-            doc('#modalTitle').textContent = 'Remover Disciplina'; doc('#modalMessage').textContent = `Remover "${nome}"?`;
-            showModal('#modal', () => {
+        function handleDisciplinaRemove(nome) {
+            const action = () => {
                 state.disciplinas = state.disciplinas.filter(d => d !== nome);
-                state.students.forEach(s => s.bimestres.forEach(b => delete b[toId(nome)]));
+                state.students = [];
                 saveData(); 
-                renderDisciplinas('add');
-                renderDisciplinas('edit');
-                updateFormTotals('add');
-                if(state.studentToEdit) updateFormTotals('edit');
-                renderAdvancedReports();
-                showAlert(`"${nome}" removida!`);
-            });
+                renderAll();
+                showAlert(`"${nome}" removida e alunos zerados!`);
+            };
+
+            if (state.students.length > 0) {
+                 doc('#modalTitle').textContent = 'Remover Disciplina'; 
+                 doc('#modalMessage').textContent = `Remover "${nome}"? Isso irá limpar todos os alunos cadastrados.`;
+                 showModal('#modal', action);
+            } else {
+                action();
+            }
         }
         function addDynamicInputListeners(prefix) {
-            docAll(`#${prefix}-student-pane .nota-input, #${prefix}-student-pane .remove-disciplina`).forEach(el => { 
+            docAll(`#${prefix}-student-pane .nota-input`).forEach(el => { 
                 el.removeEventListener('input', () => updateFormTotals(prefix)); 
-                el.removeEventListener('click', handleDisciplinaRemove);
+                el.addEventListener('input', () => updateFormTotals(prefix));
             });
-            docAll(`#${prefix}-student-pane .nota-input`).forEach(el => el.addEventListener('input', () => updateFormTotals(prefix)));
-            docAll(`#add-student-pane .remove-disciplina`).forEach(el => el.addEventListener('click', handleDisciplinaRemove));
         }
         function handleImport(e) {
             const file = e.target.files[0]; if(!file) return;
@@ -647,7 +690,7 @@
             state.parsedStudents = [];
             const rows = text.split('\n').filter(r => r.trim() !== '');
             let hasErrors = false;
-            let previewHTML = `<p>${rows.length} linha(s) detectada(s).</p><table><thead><tr><th>Matrícula</th><th>Nome</th><th>Status</th><th>Detalhes</th></tr></thead><tbody>`;
+            let previewHTML = `<p>${rows.length} linha(s) detectada(s).</p><div class="table-responsive"><table><thead><tr><th>Matrícula</th><th>Nome</th><th>Status</th><th>Detalhes</th></tr></thead><tbody>`;
 
             rows.forEach(row => {
                 const cols = row.split(';').map(c => c.trim());
@@ -674,7 +717,7 @@
                 previewHTML += `<tr class="${!student.valid ? 'error-row' : ''}"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>${student.valid ? '✔️ Válido' : '❌ Erro'}</td><td class="error-cell">${student.error}</td></tr>`;
                 state.parsedStudents.push(student);
             });
-            previewHTML += '</tbody></table>';
+            previewHTML += '</tbody></table></div>';
             doc('#importPreview').innerHTML = previewHTML;
             doc('#importModalConfirm').disabled = hasErrors || rows.length === 0;
         }
@@ -717,15 +760,30 @@
             doc('#edit-searchResults').classList.add('hidden');
             doc('#editStudentForm').classList.remove('hidden');
         }
+        function renderDisciplinasConfig() {
+            const list = doc('#disciplinasList');
+            list.innerHTML = '';
+            state.disciplinas.forEach(d => {
+                list.innerHTML += `<span class="disciplina-tag">${d} <button data-disciplina="${d}" class="remove-disciplina-btn">&times;</button></span>`;
+            });
+            doc('#disciplinasWarning').classList.toggle('hidden', state.students.length === 0);
+        }
+        function renderAll() {
+            renderDisciplinasConfig();
+            renderFormStructure('add');
+            renderFormStructure('edit');
+            renderStudents();
+            updateStatistics();
+            renderAdvancedReports();
+            updateFormTotals('add');
+        }
         
         function init() {
             loadData();
             doc('#numBimestres').value = state.config.numBimestres; doc('#maxAtividade').value = state.config.maxAtividade; doc('#maxTrabalho').value = state.config.maxTrabalho;
             doc('#maxProva').value = state.config.maxProva; doc('#minNotaBimestre').value = state.config.minNotaBimestre; doc('#minNotaTotal').value = state.config.minNotaTotal;
             updateConfigSummary(); 
-            renderFormStructure('add');
-            renderFormStructure('edit');
-            renderStudents(); updateStatistics(); renderAdvancedReports(); updateFormTotals('add');
+            renderAll();
             
             doc('#addStudentForm').addEventListener('submit', handleAddStudentSubmit);
             doc('#editStudentForm').addEventListener('submit', handleUpdateStudentSubmit);
@@ -746,9 +804,50 @@
             doc('#adicionarDisciplina').addEventListener('click', () => {
                 const nome = doc('#novaDisciplina').value.trim();
                 if (nome && !state.disciplinas.find(d => d.toLowerCase() === nome.toLowerCase())) {
-                    state.disciplinas.push(nome); saveData(); renderDisciplinas('add'); renderDisciplinas('edit'); renderAdvancedReports(); doc('#novaDisciplina').value = '';
+                    if (state.students.length > 0) {
+                        doc('#modalTitle').textContent = 'Adicionar Disciplina'; 
+                        doc('#modalMessage').textContent = `Adicionar "${nome}"? Isso irá limpar todos os alunos cadastrados.`;
+                        showModal('#modal', () => {
+                            state.disciplinas.push(nome);
+                            state.students = [];
+                            saveData(); 
+                            renderAll();
+                            doc('#novaDisciplina').value = '';
+                        });
+                    } else {
+                        state.disciplinas.push(nome);
+                        saveData(); 
+                        renderAll();
+                        doc('#novaDisciplina').value = '';
+                    }
                 } else { showAlert('Nome da disciplina inválido ou já existe.', 'error'); }
             });
+            doc('#disciplinasList').addEventListener('click', e => {
+                if(e.target.matches('.remove-disciplina-btn')) {
+                    handleDisciplinaRemove(e.target.dataset.disciplina);
+                }
+            });
+            doc('#bulkAddDisciplinas').addEventListener('click', () => {
+                doc('#bulkDisciplinasInput').value = state.disciplinas.join('\n');
+                showModal('#disciplinasModal', () => {
+                    const newDisciplinas = doc('#bulkDisciplinasInput').value.split('\n').map(d => d.trim()).filter(d => d);
+                    const action = () => {
+                        state.disciplinas = newDisciplinas.length > 0 ? newDisciplinas : state.disciplinas;
+                        state.students = [];
+                        saveData();
+                        renderAll();
+                        showAlert('Lista de disciplinas atualizada e alunos zerados!');
+                    };
+                    if (state.students.length > 0) {
+                        doc('#modalTitle').textContent = 'Atualizar Disciplinas'; 
+                        doc('#modalMessage').textContent = `Atualizar a lista? Isso irá limpar todos os alunos cadastrados.`;
+                        showModal('#modal', action);
+                    } else {
+                        action();
+                    }
+                });
+            });
+
             docAll('.bimestre-tabs').forEach(tabs => tabs.addEventListener('click', (e) => {
                 if(e.target.matches('.bimestre-tab')) {
                     const bim = e.target.dataset.bimestre;
@@ -772,10 +871,6 @@
                 const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
                 const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
                 link.download = `backup_notas_${new Date().toISOString().slice(0,10)}.json`; link.click();
-            });
-            doc('#clearAllData').addEventListener('click', () => {
-                doc('#modalTitle').textContent = 'Limpar Tudo'; doc('#modalMessage').textContent = `Excluir ${state.students.length} aluno(s)?`;
-                showModal('#modal', () => { state.students = []; state.disciplinas = ['Português', 'Matemática']; saveData(); window.location.reload(); });
             });
             doc('#importData').addEventListener('click', () => doc('#importFile').click());
             doc('#importFile').addEventListener('change', handleImport);
