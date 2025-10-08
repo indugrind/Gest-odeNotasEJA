@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE GESTÃO DE NOTAS</title>
+    <title>NotaSys - Gestão Acadêmica</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F2C94C'%3E%3Cpath d='M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 8.69L3.41 7.09 12 5.31l8.59 1.78L12 11.69z M5 13.18V17.5h14v-4.32l-7 3.11-7-3.11z'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -63,7 +64,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--light-text); padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 6px 12px var(--shadow-color); text-align: center; }
-        header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
         header p { font-size: 1.1rem; opacity: 0.9; }
         .card { background: var(--card-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 8px var(--shadow-color); transition: background-color 0.3s; }
         .card h2 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
@@ -260,8 +261,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>SISTEMA DE GESTÃO DE NOTAS</h1>
-            <p>Controle e acompanhamento do desempenho dos alunos</p>
+            <h1>NotaSys</h1>
+            <p>Sistema de Gestão Acadêmica</p>
         </header>
         <div class="header-controls"><div class="theme-switch-wrapper"><span>☀️</span><label class="theme-switch" for="darkModeToggle"><input type="checkbox" id="darkModeToggle" /><span class="slider round"></span></label><span>🌙</span></div></div>
         <div id="alertContainer"></div>
@@ -354,7 +355,17 @@
 
         <div class="card"><h2>📈 Relatórios Avançados</h2><div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div><div class="chart-container"><canvas id="advancedReportChart"></canvas></div></div>
         <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
-        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
+        <div class="card">
+            <h2>💾 Dados</h2>
+            <p class="text-secondary-color" style="margin-top: -15px; margin-bottom: 15px;">Use as funções abaixo para salvar ou carregar todos os dados do sistema de uma só vez.</p>
+            <div class="actions">
+                <button id="exportCSV" class="btn-success">📄 Exportar CSV</button>
+                <button id="backupData" class="btn-success">💾 Fazer Backup</button>
+                <button id="importData" class="btn-warning">📥 Importar Backup</button>
+                <button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button>
+            </div>
+            <input type="file" id="importFile" class="hidden" accept=".json">
+        </div>
     </div>
 
     <div id="modal" class="modal-overlay"><div class="modal"><h3 id="modalTitle"></h3><p id="modalMessage"></p><div class="modal-buttons"><button id="modalConfirm" class="btn-danger">Confirmar</button><button id="modalCancel" class="btn-secondary">Cancelar</button></div></div></div>
@@ -919,4 +930,5 @@
     </script>
 </body>
 </html>
+
 
