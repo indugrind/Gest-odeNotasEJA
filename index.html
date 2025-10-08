@@ -354,13 +354,13 @@
 
         <div class="card"><h2>📈 Relatórios Avançados</h2><div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div><div class="chart-container"><canvas id="advancedReportChart"></canvas></div></div>
         <div class="card"><h2>📊 Estatísticas da Turma</h2><div class="stats"><div class="stat-card"><h3>Alunos</h3><div class="stat-value" id="totalStudents">0</div></div><div class="stat-card"><h3>Média da Turma</h3><div class="stat-value stat-media" id="classAverage">0.0</div></div><div class="stat-card"><h3>Aprovados</h3><div class="stat-value stat-aprovados" id="approvedStudents">0</div></div><div class="stat-card"><h3>Reprovados</h3><div class="stat-value stat-reprovados" id="failedStudents">0</div></div></div></div>
-        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar Alunos</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
+        <div class="card"><h2>💾 Dados</h2><div class="actions"><button id="exportCSV" class="btn-success">📄 CSV</button><button id="backupData" class="btn-success">💾 Backup</button><button id="importData" class="btn-warning">📥 Importar</button><button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button></div><input type="file" id="importFile" class="hidden" accept=".json"></div>
     </div>
 
     <div id="modal" class="modal-overlay"><div class="modal"><h3 id="modalTitle"></h3><p id="modalMessage"></p><div class="modal-buttons"><button id="modalConfirm" class="btn-danger">Confirmar</button><button id="modalCancel" class="btn-secondary">Cancelar</button></div></div></div>
     <div id="detailsModal" class="modal-overlay"><div class="modal"><h3 id="detailsModalTitle"></h3><p id="detailsModalSubtitle"></p><div class="chart-container"><canvas id="studentChart"></canvas></div><div class="modal-buttons"><button id="detailsModalClose" class="btn-secondary">Fechar</button></div></div></div>
     <div id="boletimModal" class="modal-overlay"><div class="modal"><div id="boletimContent"></div><div class="modal-buttons"><button id="printBoletim" class="btn-success">🖨️ Imprimir</button><button id="boletimModalClose" class="btn-secondary">Fechar</button></div></div></div>
-    <div id="importModal" class="modal-overlay"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. Use ponto (.) para decimais e separe colunas com ponto e vírgula (;).</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45.5;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
+    <div id="importModal" class="modal-overlay"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. A nota a ser colada é a nota <strong>total</strong> da disciplina no bimestre. Use ponto (.) para decimais e separe colunas com ponto e vírgula (;).</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45.5;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
     <div id="disciplinasModal" class="modal-overlay"><div class="modal"><h3>Adicionar Disciplinas em Massa</h3><p>Cole a lista de disciplinas abaixo, uma por linha. As disciplinas existentes serão substituídas.</p><textarea id="bulkDisciplinasInput"></textarea><div class="modal-buttons"><button id="disciplinasModalConfirm" class="btn-success">Salvar Lista</button><button id="disciplinasModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
 
     <script>
@@ -695,18 +695,29 @@
             rows.forEach(row => {
                 const cols = row.split(';').map(c => c.trim());
                 let student = { valid: false, error: '', data: {} };
-                if (cols.length !== expectedCols) { student.error = `Número de colunas incorreto. Esperado: ${expectedCols}, Encontrado: ${cols.length}.`; } 
-                else {
+                if (cols.length !== expectedCols) { 
+                    student.error = `Número de colunas incorreto. Esperado: ${expectedCols}, Encontrado: ${cols.length}.`; 
+                } else {
                     student.data = { studentId: cols[0], name: cols[1], bimestres: Array.from({length: state.config.numBimestres}, () => ({})) };
                     let validRow = true;
-                    if (!student.data.studentId || !student.data.name) { student.error = 'Matrícula e Nome são obrigatórios.'; validRow = false; }
+                    if (!student.data.studentId || !student.data.name) { 
+                        student.error = 'Matrícula e Nome são obrigatórios.'; 
+                        validRow = false; 
+                    }
                     if (validRow) {
                         let colIndex = 2;
                         for (let i = 0; i < state.config.numBimestres; i++) {
                             for (const disciplina of state.disciplinas) {
-                                const nota = parseFloat(cols[colIndex].replace(',', '.')); const faltas = parseInt(cols[colIndex + 1]);
-                                if (isNaN(nota) || isNaN(faltas) || nota < 0 || faltas < 0) { student.error = `Dado inválido para ${disciplina} no ${i+1}º B.`; validRow = false; break; }
-                                student.data.bimestres[i][toId(disciplina)] = { total: nota, faltas: faltas }; colIndex += 2;
+                                const nota = parseFloat(cols[colIndex].replace(',', '.')); 
+                                const faltas = parseInt(cols[colIndex + 1]);
+                                const maxNota = state.config.maxAtividade + state.config.maxTrabalho + state.config.maxProva;
+                                if (isNaN(nota) || isNaN(faltas) || nota < 0 || faltas < 0 || nota > maxNota) { 
+                                    student.error = `Dado inválido para ${disciplina} no ${i+1}º B (Nota: ${nota}, Max: ${maxNota}).`; 
+                                    validRow = false; 
+                                    break; 
+                                }
+                                student.data.bimestres[i][toId(disciplina)] = { atividade: 0, trabalho: 0, prova: nota, total: nota, faltas: faltas }; 
+                                colIndex += 2;
                             }
                             if (!validRow) break;
                         }
