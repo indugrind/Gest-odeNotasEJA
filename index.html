@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotaSys Pro - Gestão Acadêmica</title>
+    <title>NotaSys Pro - Gestão Acadêmica de Múltiplas Turmas</title>
     <!-- Favicon SVG para melhor qualidade e customização -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F2C94C'%3E%3Cpath d='M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 8.69L3.41 7.09 12 5.31l8.59 1.78L12 11.69z M5 13.18V17.5h14v-4.32l-7 3.11-7-3.11z'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,7 @@
         header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--light-text); padding: 20px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 6px 12px var(--shadow-color); text-align: center; }
         header h1 { font-size: 2.5rem; margin-bottom: 10px; }
         header p { font-size: 1.1rem; opacity: 0.9; }
-        .card { background: var(--card-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 8px var(--shadow-color); transition: background-color 0.3s; }
+        .card { background: var(--card-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 8px var(--shadow-color); transition: background-color 0.3s, opacity 0.3s, transform 0.3s; }
         .card h2 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); }
@@ -119,12 +119,48 @@
         .disciplina-tag button { background: none; border: none; color: inherit; cursor: pointer; padding: 0; margin: 0; font-size: 1.1rem; line-height: 1; }
         #student-form.hidden { max-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; opacity: 0; transform: translateY(-20px); transition: all 0.5s ease-in-out; }
         #student-form { max-height: 5000px; overflow: hidden; opacity: 1; transform: translateY(0); transition: all 0.5s ease-in-out; }
+        .btn-loading-spinner { display: inline-block; width: 1.2em; height: 1.2em; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; -webkit-animation: spin 1s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); } }
+        button .btn-text { vertical-align: middle; }
+
         /* Media Queries para Responsividade */
         @media (max-width: 768px) {
             html { font-size: 14px; } body { padding: 10px; } header h1 { font-size: 1.8rem; }
             .card { padding: 15px; } .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
             .header-controls { flex-direction: column; gap: 15px; align-items: center; }
             button, input, select, textarea { font-size: 1rem; padding: 10px 12px; }
+
+            /* NOVO: Estilos da Tabela Responsiva */
+            .table-responsive { overflow-x: visible; }
+            #studentsTable thead { display: none; }
+            #studentsTable, #studentsTable tbody, #studentsTable tr, #studentsTable td { display: block; width: 100%; }
+            #studentsTable tr {
+                background: var(--card-color);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                margin-bottom: 15px;
+                padding: 15px;
+                box-shadow: 0 2px 4px var(--shadow-color);
+            }
+            #studentsTable td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 10px 0;
+                border-bottom: 1px solid var(--border-color);
+                white-space: normal;
+            }
+            #studentsTable td:last-child { border-bottom: none; padding-top: 15px; }
+            #studentsTable td[data-label]::before {
+                content: attr(data-label);
+                font-weight: 600;
+                text-align: left;
+                margin-right: 10px;
+                color: var(--text-secondary-color);
+            }
+            #studentsTable td.actions-cell { justify-content: flex-end; }
         }
         /* Estilos de Impressão */
         @media print { 
@@ -138,7 +174,7 @@
     <div class="container">
         <header>
             <h1>NotaSys Pro</h1>
-            <p>Sistema de Gestão Acadêmica Refatorado e Corrigido</p>
+            <p>Sistema de Gestão Acadêmica com Múltiplas Turmas</p>
         </header>
 
         <div class="header-controls">
@@ -153,133 +189,150 @@
         </div>
 
         <div id="alertContainer" role="status" aria-live="polite"></div>
-        
-        <div class="card">
-            <h2>⚙️ Configuração da Turma</h2>
-            <div class="grid grid-2">
-                <div class="config-box">
-                    <h3>🗓️ Estrutura do Ano Letivo</h3>
-                    <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="1"></div>
-                    <h3>💯 Pontuação por Disciplina (em cada bimestre)</h3>
-                    <div class="grid grid-3">
-                        <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="0"></div>
-                        <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="0"></div>
-                        <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="10"></div>
-                    </div>
-                </div>
-                <div class="config-box">
-                    <h3>📊 Critérios de Aprovação</h3>
-                    <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR DISCIPLINA em cada bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="6"></div>
-                    <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60"></div>
-                    <div id="approvalRuleSummary"></div>
-                </div>
-            </div>
-            <button id="aplicarConfig" class="btn-success">💾 Aplicar Configurações</button>
-        </div>
 
         <div class="card">
-            <h2>📚 Disciplinas da Turma</h2>
-            <label>Disciplinas Atuais:</label>
-            <div id="disciplinasList"></div>
-            <div class="add-disciplina-section">
+            <h2>🏫 Gestão de Turmas</h2>
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="turmaSelect">Turma Ativa</label>
+                    <select id="turmaSelect"></select>
+                </div>
+                <div class="actions" style="align-self: end;">
+                    <button id="createTurmaBtn" class="btn-success">➕ Criar Turma</button>
+                    <button id="renameTurmaBtn" class="btn-primary">✏️ Renomear</button>
+                    <button id="deleteTurmaBtn" class="btn-danger">🗑️ Excluir Turma</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="turma-content">
+            <div class="card">
+                <h2>⚙️ Configuração da Turma</h2>
                 <div class="grid grid-2">
-                    <div class="form-group"><label for="novaDisciplina">Adicionar Nova Disciplina</label><input type="text" id="novaDisciplina" placeholder="Ex: História"></div>
-                    <div class="form-group" style="align-self: end;"><button type="button" id="adicionarDisciplina" class="btn-success">➕ Adicionar</button></div>
-                </div>
-            </div>
-            <div class="actions"><button id="bulkAddDisciplinas" class="btn-primary">Adicionar em Massa</button></div>
-        </div>
-        
-        <div id="student-management-card" class="card">
-            <h2 id="student-form-title">Gestão de Alunos</h2>
-            <p id="form-placeholder" class="alert">Selecione um aluno na lista abaixo para ver ou editar as suas notas, ou clique em 'Adicionar Novo Aluno'.</p>
-            <form id="student-form" class="hidden">
-                 <div class="grid grid-2">
-                    <div class="form-group">
-                        <label for="studentName">Nome *</label><input type="text" id="studentName" required>
+                    <div class="config-box">
+                        <h3>🗓️ Estrutura do Ano Letivo</h3>
+                        <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="1"></div>
+                        <h3>💯 Pontuação por Disciplina (em cada bimestre)</h3>
+                        <div class="grid grid-3">
+                            <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="0"></div>
+                            <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="0"></div>
+                            <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="10"></div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="studentId">Matrícula *</label><input type="text" id="studentId" required>
-                        <div id="studentId-validation" class="validation-message"></div>
+                    <div class="config-box">
+                        <h3>📊 Critérios de Aprovação</h3>
+                        <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR DISCIPLINA em cada bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="6"></div>
+                        <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60"></div>
+                        <div id="approvalRuleSummary"></div>
                     </div>
                 </div>
-                <div class="bimestre-tabs" id="bimestreTabsContainer"></div>
-                <div id="bimestresContentContainer"></div>
-                <div class="grid grid-2" style="margin-top: 20px;">
-                    <div class="form-group"><label for="totalGeral">Total Anual (Soma de Todas as Disciplinas)</label><input type="text" id="totalGeral" class="total-display" readonly></div>
-                    <div class="form-group"><label for="statusFinal">Status Final</label><input type="text" id="statusFinal" class="total-display" readonly></div>
-                </div>
-                <div class="form-group">
-                    <button type="submit" id="submit-btn" class="btn-success">💾 Salvar</button>
-                    <button type="button" id="clear-form-btn" class="btn-danger">🗑️ Cancelar</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h2>📋 Lista de Alunos</h2>
-                <button id="show-add-form-btn" class="btn-success">➕ Adicionar Novo Aluno</button>
+                <button id="aplicarConfig" class="btn-success">💾 <span class="btn-text">Aplicar Configurações</span></button>
             </div>
-            <div class="form-group"><label for="searchStudent">🔎 Buscar por Nome ou Matrícula</label><input type="text" id="searchStudent" placeholder="Digite para buscar..."></div>
-            <div class="table-responsive">
-                <table id="studentsTable">
-                    <thead>
-                        <tr>
-                            <!-- O CABEÇALHO SERÁ GERADO DINAMICAMENTE PELO JAVASCRIPT -->
-                        </tr>
-                    </thead>
-                    <tbody id="studentsList"></tbody>
-                </table>
-            </div>
-            <div id="emptyMessage" class="alert hidden">Nenhum aluno cadastrado.</div>
-        </div>
 
-        <div class="card">
-            <h2>📈 Relatórios Avançados</h2>
-            <div class="grid grid-2">
-                <div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div>
-                <div class="form-group">
-                    <label>Faixas de Desempenho (%)</label>
-                    <div class="grid" style="grid-template-columns: repeat(5, 1fr); gap: 10px;">
-                        <input type="number" class="report-range-input" id="range1" value="20" min="0" max="100">
-                        <input type="number" class="report-range-input" id="range2" value="40" min="0" max="100">
-                        <input type="number" class="report-range-input" id="range3" value="60" min="0" max="100">
-                        <input type="number" class="report-range-input" id="range4" value="80" min="0" max="100">
-                        <input type="number" class="report-range-input" id="range5" value="100" min="0" max="100" readonly>
+            <div class="card">
+                <h2>📚 Disciplinas da Turma</h2>
+                <label>Disciplinas Atuais:</label>
+                <div id="disciplinasList"></div>
+                <div class="add-disciplina-section">
+                    <div class="grid grid-2">
+                        <div class="form-group"><label for="novaDisciplina">Adicionar Nova Disciplina</label><input type="text" id="novaDisciplina" placeholder="Ex: História"></div>
+                        <div class="form-group" style="align-self: end;"><button type="button" id="adicionarDisciplina" class="btn-success">➕ Adicionar</button></div>
+                    </div>
+                </div>
+                <div class="actions"><button id="bulkAddDisciplinas" class="btn-primary">Adicionar em Massa</button></div>
+            </div>
+            
+            <div id="student-management-card" class="card">
+                <h2 id="student-form-title">Gestão de Alunos</h2>
+                <p id="form-placeholder" class="alert">Selecione um aluno na lista abaixo para ver ou editar as suas notas, ou clique em 'Adicionar Novo Aluno'.</p>
+                <form id="student-form" class="hidden">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="studentName">Nome *</label><input type="text" id="studentName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentId">Matrícula *</label><input type="text" id="studentId" required>
+                            <div id="studentId-validation" class="validation-message"></div>
+                        </div>
+                    </div>
+                    <div class="bimestre-tabs" id="bimestreTabsContainer"></div>
+                    <div id="bimestresContentContainer"></div>
+                    <div class="grid grid-2" style="margin-top: 20px;">
+                        <div class="form-group"><label for="totalGeral">Total Anual (Soma de Todas as Disciplinas)</label><input type="text" id="totalGeral" class="total-display" readonly></div>
+                        <div class="form-group"><label for="statusFinal">Status Final</label><input type="text" id="statusFinal" class="total-display" readonly></div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" id="submit-btn" class="btn-success">💾 <span class="btn-text">Salvar</span></button>
+                        <button type="button" id="clear-form-btn" class="btn-danger">🗑️ Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2>📋 Lista de Alunos</h2>
+                    <button id="show-add-form-btn" class="btn-success">➕ Adicionar Novo Aluno</button>
+                </div>
+                <div class="form-group"><label for="searchStudent">🔎 Buscar por Nome ou Matrícula</label><input type="text" id="searchStudent" placeholder="Digite para buscar..."></div>
+                <div class="table-responsive">
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <!-- O CABEÇALHO SERÁ GERADO DINAMICAMENTE PELO JAVASCRIPT -->
+                            </tr>
+                        </thead>
+                        <tbody id="studentsList"></tbody>
+                    </table>
+                </div>
+                <div id="emptyMessage" class="alert hidden">Nenhum aluno cadastrado.</div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Relatórios Avançados</h2>
+                <div class="grid grid-2">
+                    <div class="form-group"><label for="reportSubject">Analisar Desempenho em:</label><select id="reportSubject"></select></div>
+                    <div class="form-group">
+                        <label>Faixas de Desempenho (%)</label>
+                        <div class="grid" style="grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                            <input type="number" class="report-range-input" id="range1" value="20" min="0" max="100">
+                            <input type="number" class="report-range-input" id="range2" value="40" min="0" max="100">
+                            <input type="number" class="report-range-input" id="range3" value="60" min="0" max="100">
+                            <input type="number" class="report-range-input" id="range4" value="80" min="0" max="100">
+                            <input type="number" class="report-range-input" id="range5" value="100" min="0" max="100" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container"><canvas id="advancedReportChart"></canvas></div>
+            </div>
+            <div class="card">
+                <h2>📊 Estatísticas da Turma</h2>
+                <div class="stats grid-3">
+                    <div class="stat-card">
+                        <h3>Alunos</h3>
+                        <div class="stat-value" id="totalStudents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Aprovados</h3>
+                        <div class="stat-value stat-aprovados" id="approvedStudents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Reprovados</h3>
+                        <div class="stat-value stat-reprovados" id="failedStudents">0</div>
                     </div>
                 </div>
             </div>
-            <div class="chart-container"><canvas id="advancedReportChart"></canvas></div>
-        </div>
-        <div class="card">
-            <h2>📊 Estatísticas da Turma</h2>
-            <div class="stats grid-3">
-                <div class="stat-card">
-                    <h3>Alunos</h3>
-                    <div class="stat-value" id="totalStudents">0</div>
+            <div class="card">
+                <h2>💾 Dados da Turma</h2>
+                <p class="text-secondary-color" style="margin-top: -15px; margin-bottom: 15px;">Use as funções abaixo para salvar ou carregar os dados da turma <strong>ativa</strong>.</p>
+                <div class="actions">
+                    <button id="exportCSV" class="btn-success">📄 Exportar CSV</button>
+                    <button id="backupData" class="btn-success">💾 Fazer Backup</button>
+                    <button id="importData" class="btn-warning">📥 Importar Backup</button>
+                    <button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button>
+                    <button id="resetSystem" class="btn-danger">🗑️ Resetar Dados da Turma</button>
                 </div>
-                <div class="stat-card">
-                    <h3>Aprovados</h3>
-                    <div class="stat-value stat-aprovados" id="approvedStudents">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Reprovados</h3>
-                    <div class="stat-value stat-reprovados" id="failedStudents">0</div>
-                </div>
+                <input type="file" id="importFile" class="hidden" accept=".json">
             </div>
-        </div>
-        <div class="card">
-            <h2>💾 Dados</h2>
-            <p class="text-secondary-color" style="margin-top: -15px; margin-bottom: 15px;">Use as funções abaixo para salvar ou carregar todos os dados do sistema de uma só vez.</p>
-            <div class="actions">
-                <button id="exportCSV" class="btn-success">📄 Exportar CSV</button>
-                <button id="backupData" class="btn-success">💾 Fazer Backup</button>
-                <button id="importData" class="btn-warning">📥 Importar Backup</button>
-                <button id="importBulkData" class="btn-primary">📊 Importar Alunos em Massa</button>
-                <button id="resetSystem" class="btn-danger">🗑️ Resetar Dados da Turma</button>
-            </div>
-            <input type="file" id="importFile" class="hidden" accept=".json">
         </div>
     </div>
 
@@ -292,29 +345,30 @@
 
     <script>
     /**
-     * NotaSys Pro - Refactored Academic Management System
+     * NotaSys Pro - Academic Management System with Multi-Class Support
      *
-     * @version 2.2.6
-     * @author Gemini (Refactored & Fixed)
-     * Correção: Adicionada verificação para a biblioteca de gráficos (Chart.js) para
-     * prevenir que uma falha no carregamento da mesma impeça o resto da aplicação
-     * de funcionar, garantindo que os botões permaneçam ativos.
+     * @version 3.2.0
+     * @author Gemini (Refactored & Upgraded)
+     * Implementada tabela responsiva (formato de cards) para a lista de alunos em dispositivos móveis.
      */
     document.addEventListener('DOMContentLoaded', () => {
         const App = {
             // --- GERENCIAMENTO DE ESTADO ---
             state: {
-                students: [],
-                disciplinas: ['Português', 'Matemática'],
+                turmas: {},
+                activeTurmaId: null,
                 studentToEdit: null,
                 sort: { column: 'name', order: 'asc' },
-                config: {
-                    version: "2.2.6",
-                    numBimestres: 1, maxAtividade: 0, maxTrabalho: 0, maxProva: 10, minNotaBimestre: 6, minNotaTotal: 60,
-                    reportRanges: [20, 40, 60, 80, 100], 
-                },
                 charts: { studentChart: null, advancedReportChart: null },
                 parsedStudents: [],
+            },
+
+            // --- FUNÇÃO AUXILIAR PRINCIPAL ---
+            getActiveTurma() {
+                if (this.state.activeTurmaId && this.state.turmas[this.state.activeTurmaId]) {
+                    return this.state.turmas[this.state.activeTurmaId];
+                }
+                return null;
             },
 
             // --- UTILITÁRIOS ---
@@ -344,12 +398,7 @@
                         modal.onclick = null;
                     };
                     if (confirmBtn) {
-                        confirmBtn.onclick = () => {
-                            if (typeof onConfirm === 'function') {
-                                onConfirm();
-                            }
-                            hide();
-                        };
+                        confirmBtn.onclick = () => { if (typeof onConfirm === 'function') onConfirm(); hide(); };
                     }
                     if (cancelBtn) cancelBtn.onclick = hide;
                     modal.onclick = (e) => { if (e.target === modal) hide(); };
@@ -360,29 +409,56 @@
                         clearTimeout(timeout);
                         timeout = setTimeout(() => func.apply(this, args), delay);
                     };
+                },
+                setButtonLoadingState(button, isLoading, loadingText = 'Salvando...') {
+                    if (isLoading) {
+                        button.disabled = true;
+                        button.dataset.originalContent = button.innerHTML;
+                        button.innerHTML = `<span class="btn-loading-spinner"></span><span class="btn-text">${loadingText}</span>`;
+                    } else {
+                        button.disabled = false;
+                        if (button.dataset.originalContent) {
+                            button.innerHTML = button.dataset.originalContent;
+                        }
+                    }
+                },
+                async showButtonSuccessState(button, successText = 'Salvo!', duration = 1500) {
+                    if (button.dataset.originalContent) {
+                        button.innerHTML = `✓ <span class="btn-text">${successText}</span>`;
+                        await new Promise(resolve => setTimeout(resolve, duration));
+                        button.innerHTML = button.dataset.originalContent;
+                        button.disabled = false;
+                    }
                 }
             },
 
             // --- ARMAZENAMENTO LOCAL ---
             storage: {
                 KEYS: {
-                    CONFIG: 'notasys_pro_v2_config',
-                    DISCIPLINAS: 'notasys_pro_v2_disciplinas',
-                    STUDENTS: 'notasys_pro_v2_students',
+                    TURMAS: 'notasys_pro_v3_turmas',
+                    ACTIVE_TURMA_ID: 'notasys_pro_v3_active_turma_id',
                     THEME: 'notasys_pro_v2_theme',
                 },
                 load() {
                     try {
-                        const configData = localStorage.getItem(this.KEYS.CONFIG);
-                        if (configData) {
-                            Object.assign(App.state.config, JSON.parse(configData));
-                            const disciplinasData = localStorage.getItem(this.KEYS.DISCIPLINAS);
-                            if (disciplinasData) App.state.disciplinas = JSON.parse(disciplinasData);
-                            const studentsData = localStorage.getItem(this.KEYS.STUDENTS);
-                            if (studentsData) App.state.students = JSON.parse(studentsData);
+                        const turmasData = localStorage.getItem(this.KEYS.TURMAS);
+                        if (turmasData) {
+                            App.state.turmas = JSON.parse(turmasData);
+                            App.state.activeTurmaId = localStorage.getItem(this.KEYS.ACTIVE_TURMA_ID);
+                            if (!App.state.activeTurmaId || !App.state.turmas[App.state.activeTurmaId]) {
+                                App.state.activeTurmaId = Object.keys(App.state.turmas)[0] || null;
+                            }
                         } else {
-                            this.migrateFromV1();
+                            this.migrateFromV2();
                         }
+
+                        if (Object.keys(App.state.turmas).length === 0) {
+                            const newId = crypto.randomUUID();
+                            App.state.turmas[newId] = this.createDefaultTurma('Minha Primeira Turma');
+                            App.state.activeTurmaId = newId;
+                            this.save();
+                        }
+                        
                         const theme = localStorage.getItem(this.KEYS.THEME);
                         if (theme === 'dark') {
                             App.utils.doc('body').classList.add('dark-mode');
@@ -395,13 +471,17 @@
                 },
                 save() {
                     try {
-                        App.state.students.forEach(student => {
-                            const updatedMetrics = App.logic.calculateTotalsAndStatus(student);
-                            Object.assign(student, updatedMetrics);
-                        });
-                        localStorage.setItem(this.KEYS.STUDENTS, JSON.stringify(App.state.students));
-                        localStorage.setItem(this.KEYS.DISCIPLINAS, JSON.stringify(App.state.disciplinas));
-                        localStorage.setItem(this.KEYS.CONFIG, JSON.stringify(App.state.config));
+                        const activeTurma = App.getActiveTurma();
+                        if (activeTurma) {
+                            activeTurma.students.forEach(student => {
+                                const updatedMetrics = App.logic.calculateTotalsAndStatus(student);
+                                Object.assign(student, updatedMetrics);
+                            });
+                        }
+                        localStorage.setItem(this.KEYS.TURMAS, JSON.stringify(App.state.turmas));
+                        if (App.state.activeTurmaId) {
+                            localStorage.setItem(this.KEYS.ACTIVE_TURMA_ID, App.state.activeTurmaId);
+                        }
                         return true;
                     } catch (e) {
                         console.error("Error saving data:", e);
@@ -409,23 +489,30 @@
                         return false;
                     }
                 },
-                migrateFromV1() {
-                    try {
-                        const oldConfigData = localStorage.getItem('sistema_academico_pro_v1_config');
-                        if (!oldConfigData) return;
-                        App.utils.showAlert('Dados da versão antiga detectados. Realizando migração...', 'warning', 6000);
-                        const oldConfig = JSON.parse(oldConfigData);
-                        const oldDisciplinas = localStorage.getItem('sistema_academico_pro_v1_disciplinas');
-                        const oldStudentKey = `sistema_academico_pro_v1_students_${oldConfig.numBimestres}b`;
-                        const oldStudentsData = localStorage.getItem(oldStudentKey);
-                        if (oldConfig) App.state.config = { ...App.state.config, ...oldConfig };
-                        if (oldDisciplinas) App.state.disciplinas = JSON.parse(oldDisciplinas);
-                        if (oldStudentsData) App.state.students = JSON.parse(oldStudentsData);
-                        this.save();
-                    } catch (e) {
-                        console.error("Migration failed:", e);
-                        App.utils.showAlert('Falha na migração de dados. Dados antigos podem ter sido perdidos.', 'error');
-                    }
+                createDefaultTurma(name) {
+                    return {
+                        id: crypto.randomUUID(), name: name, students: [],
+                        disciplinas: ['Português', 'Matemática'],
+                        config: {
+                            version: "3.2.0", numBimestres: 1, maxAtividade: 0, maxTrabalho: 0, maxProva: 10,
+                            minNotaBimestre: 6, minNotaTotal: 60, reportRanges: [20, 40, 60, 80, 100],
+                        },
+                    };
+                },
+                migrateFromV2() {
+                    const v2_configData = localStorage.getItem('notasys_pro_v2_config');
+                    if (!v2_configData) return;
+                    App.utils.showAlert('Dados antigos detectados. Migrando para o novo sistema de turmas...', 'warning', 6000);
+                    const newId = crypto.randomUUID();
+                    const newTurma = this.createDefaultTurma('Turma Migrada');
+                    newTurma.config = JSON.parse(v2_configData);
+                    newTurma.disciplinas = JSON.parse(localStorage.getItem('notasys_pro_v2_disciplinas') || '[]');
+                    newTurma.students = JSON.parse(localStorage.getItem('notasys_pro_v2_students') || '[]');
+                    App.state.turmas[newId] = newTurma;
+                    App.state.activeTurmaId = newId;
+                    localStorage.removeItem('notasys_pro_v2_config');
+                    localStorage.removeItem('notasys_pro_v2_disciplinas');
+                    localStorage.removeItem('notasys_pro_v2_students');
                 }
             },
 
@@ -433,50 +520,41 @@
             logic: {
                 calculateTotalsAndStatus(studentData) {
                     try {
-                        let totalGeral = 0;
-                        let totalFaltas = 0;
-                        let abaixoMinimoDisciplina = false;
+                        let totalGeral = 0, totalFaltas = 0, abaixoMinimoDisciplina = false;
                         const bimestreTotals = [];
-                        const { config, disciplinas } = App.state;
+                        const activeTurma = App.getActiveTurma();
+                        if (!activeTurma) return { totalGeral: '0.0', totalFaltas: 0, status: { text: 'Erro', class: 'status-Reprovado' }, average: 0, bimestreTotals: [] };
+                        const { config, disciplinas } = activeTurma;
                         const maxScorePerBimestre = config.maxAtividade + config.maxTrabalho + config.maxProva;
-
                         for (let i = 0; i < config.numBimestres; i++) {
                             let totalBimestre = 0;
                             disciplinas.forEach(d => {
                                 const nota = studentData.bimestres[i]?.[App.utils.toId(d)];
                                 if (nota) {
-                                    totalGeral += nota.total || 0;
-                                    totalBimestre += nota.total || 0;
+                                    totalGeral += nota.total || 0; totalBimestre += nota.total || 0;
                                     totalFaltas += nota.faltas || 0;
-                                    if (nota.total < config.minNotaBimestre) {
-                                        abaixoMinimoDisciplina = true;
-                                    }
+                                    if (nota.total < config.minNotaBimestre) abaixoMinimoDisciplina = true;
                                 }
                             });
                             bimestreTotals.push(totalBimestre);
                         }
-
                         const maxScoreTotalPossible = maxScorePerBimestre * config.numBimestres * disciplinas.length;
                         const average = maxScoreTotalPossible > 0 ? (totalGeral / maxScoreTotalPossible) * 10 : 0;
                         const isAprovado = (totalGeral >= config.minNotaTotal && !abaixoMinimoDisciplina);
                         const status = { text: isAprovado ? 'Aprovado' : 'Reprovado', class: isAprovado ? 'status-Aprovado' : 'status-Reprovado' };
-                        
                         return { totalGeral: totalGeral.toFixed(1), totalFaltas, status, average, bimestreTotals }; 
                     } catch (e) {
                         console.error("Error calculating totals:", e);
-                        App.utils.showAlert('Erro ao calcular totais de um aluno.', 'error');
                         return { totalGeral: '0.0', totalFaltas: 0, status: { text: 'Erro', class: 'status-Reprovado' }, average: 0, bimestreTotals: [] }; 
                     }
                 },
                 validateStudentData(data, isEditing) {
+                    const activeTurma = App.getActiveTurma();
+                    if (!activeTurma) return { valid: false, message: 'Nenhuma turma ativa.' };
                     const { name, studentId } = data;
-                    if (!name || !studentId) {
-                        return { valid: false, message: 'Nome e matrícula são obrigatórios.' };
-                    }
-                    const duplicate = App.state.students.some(s => s.studentId === studentId && s.studentId !== App.state.studentToEdit?.studentId);
-                    if (duplicate) {
-                        return { valid: false, message: 'Esta matrícula já está em uso por outro aluno.' };
-                    }
+                    if (!name || !studentId) return { valid: false, message: 'Nome e matrícula são obrigatórios.' };
+                    const duplicate = activeTurma.students.some(s => s.studentId === studentId && s.studentId !== App.state.studentToEdit?.studentId);
+                    if (duplicate) return { valid: false, message: 'Esta matrícula já está em uso por outro aluno nesta turma.' };
                     return { valid: true, message: '' };
                 },
                 validateConfig(config) {
@@ -491,31 +569,34 @@
             // --- RENDERIZAÇÃO E MANIPULAÇÃO DO DOM ---
             view: {
                 init() {
-                    this.populateConfigForm();
                     this.renderAll();
                     this.initEventListeners();
                 },
                 renderAll() {
-                    this.renderDisciplinasConfig();
-                    this.renderFormStructure();
-                    this.renderStudents();
-                    this.updateStatistics();
-                    this.renderAdvancedReports();
-                    this.updateConfigSummary();
+                    this.renderTurmaSelector();
+                    const activeTurma = App.getActiveTurma();
+                    App.utils.doc('#turma-content').style.display = activeTurma ? '' : 'none';
+                    if (activeTurma) {
+                        this.populateConfigForm(); this.renderDisciplinasConfig(); this.renderFormStructure();
+                        this.renderStudents(); this.updateStatistics(); this.renderAdvancedReports();
+                        this.updateConfigSummary();
+                    } else {
+                        App.utils.showAlert('Nenhuma turma selecionada. Crie uma nova turma para começar.', 'warning', 10000);
+                    }
                 },
                 initEventListeners() {
-                    const debouncedUpdateFormTotals = App.utils.debounce(() => this.updateFormTotals(), 400);
                     const debouncedRenderStudents = App.utils.debounce(() => this.renderStudents(), 300);
-
+                    App.utils.doc('#turmaSelect').addEventListener('change', this.handleTurmaSelect.bind(this));
+                    App.utils.doc('#createTurmaBtn').addEventListener('click', this.handleCreateTurma.bind(this));
+                    App.utils.doc('#renameTurmaBtn').addEventListener('click', this.handleRenameTurma.bind(this));
+                    App.utils.doc('#deleteTurmaBtn').addEventListener('click', this.handleDeleteTurma.bind(this));
                     App.utils.doc('#student-form').addEventListener('submit', this.handleFormSubmit.bind(this));
                     App.utils.doc('#student-form').addEventListener('input', e => {
                         if (e.target.classList.contains('nota-input')) {
-                            this.validateNoteSum(e.target);
-                            this.validateAndClampInput(e);
-                            debouncedUpdateFormTotals();
+                            this.validateNoteSum(e.target); this.validateAndClampInput(e);
+                            App.utils.debounce(() => this.updateFormTotals(), 400)();
                         }
                     });
-                    
                     App.utils.doc('#studentId').addEventListener('blur', this.validateMatriculaOnBlur.bind(this));
                     App.utils.doc('#clear-form-btn').addEventListener('click', () => this.clearForm());
                     App.utils.doc('#show-add-form-btn').addEventListener('click', () => this.showAddForm());
@@ -526,17 +607,13 @@
                     App.utils.doc('#adicionarDisciplina').addEventListener('click', this.handleAddDisciplina.bind(this));
                     App.utils.doc('#disciplinasList').addEventListener('click', this.handleDisciplinaRemove.bind(this));
                     App.utils.doc('#bulkAddDisciplinas').addEventListener('click', this.handleBulkAddDisciplinas.bind(this));
-                    
                     App.utils.doc('#bimestreTabsContainer').addEventListener('click', e => {
                         if (e.target.matches('.bimestre-tab')) this.switchBimestreTab(e.target.dataset.bimestre);
                     });
-                    
                     App.utils.doc('#darkModeToggle').addEventListener('change', e => {
                         App.utils.doc('body').classList.toggle('dark-mode', e.target.checked);
                         localStorage.setItem(App.storage.KEYS.THEME, e.target.checked ? 'dark' : 'light');
                     });
-
-                    // Ações de dados
                     App.utils.doc('#exportCSV').addEventListener('click', this.exportCSV.bind(this));
                     App.utils.doc('#backupData').addEventListener('click', this.backupData.bind(this));
                     App.utils.doc('#importData').addEventListener('click', () => App.utils.doc('#importFile').click());
@@ -545,8 +622,6 @@
                     App.utils.doc('#bulkDataInput').addEventListener('input', App.utils.debounce(() => this.handleBulkDataParse(), 300));
                     App.utils.doc('#importModalConfirm').addEventListener('click', () => this.confirmBulkImport());
                     App.utils.doc('#resetSystem').addEventListener('click', this.handleResetSystem.bind(this));
-                    
-                    // Outros
                     App.utils.doc('#printBoletim').addEventListener('click', () => window.print());
                     App.utils.doc('#reportSubject').addEventListener('change', () => this.updateAdvancedChart());
                     App.utils.docAll('.report-range-input').forEach(input => {
@@ -554,190 +629,178 @@
                     });
                     App.utils.docAll('.config-box input').forEach(el => el.addEventListener('input', () => this.updateConfigSummary()));
                 },
-
-                populateConfigForm() {
-                    const { config } = App.state;
-                    for (const key in config) {
-                        if (key === 'reportRanges') {
-                            config.reportRanges.forEach((val, i) => {
-                                const el = App.utils.doc(`#range${i + 1}`);
-                                if (el) el.value = val;
-                            });
-                        } else {
-                            const el = App.utils.doc(`#${key}`);
-                            if (el) el.value = config[key];
-                        }
+                renderTurmaSelector() {
+                    const select = App.utils.doc('#turmaSelect');
+                    select.innerHTML = '';
+                    const { turmas, activeTurmaId } = App.state;
+                    for (const id in turmas) {
+                        const option = document.createElement('option');
+                        option.value = id; option.textContent = turmas[id].name;
+                        if (id === activeTurmaId) option.selected = true;
+                        select.appendChild(option);
+                    }
+                    const hasTurmas = Object.keys(turmas).length > 0;
+                    App.utils.doc('#renameTurmaBtn').disabled = !hasTurmas;
+                    App.utils.doc('#deleteTurmaBtn').disabled = !hasTurmas;
+                },
+                handleTurmaSelect(e) {
+                    App.state.activeTurmaId = e.target.value;
+                    localStorage.setItem(App.storage.KEYS.ACTIVE_TURMA_ID, App.state.activeTurmaId);
+                    this.renderAll();
+                },
+                handleCreateTurma() {
+                    const name = prompt("Digite o nome da nova turma:");
+                    if (name && name.trim()) {
+                        const newId = crypto.randomUUID();
+                        App.state.turmas[newId] = App.storage.createDefaultTurma(name.trim());
+                        App.state.activeTurmaId = newId;
+                        App.storage.save();
+                        this.renderAll();
                     }
                 },
-                
+                handleRenameTurma() {
+                    const activeTurma = App.getActiveTurma();
+                    if (!activeTurma) return;
+                    const newName = prompt("Digite o novo nome para a turma:", activeTurma.name);
+                    if (newName && newName.trim()) {
+                        activeTurma.name = newName.trim();
+                        App.storage.save(); this.renderTurmaSelector();
+                    }
+                },
+                handleDeleteTurma() {
+                    const activeTurma = App.getActiveTurma();
+                    if (!activeTurma) return;
+                    if (Object.keys(App.state.turmas).length <= 1) return App.utils.showAlert("Você não pode excluir a última turma.", "error");
+                    const action = () => {
+                        delete App.state.turmas[App.state.activeTurmaId];
+                        App.state.activeTurmaId = Object.keys(App.state.turmas)[0] || null;
+                        App.storage.save(); this.renderAll();
+                        App.utils.showAlert(`Turma "${activeTurma.name}" excluída!`);
+                    };
+                    App.utils.showModal('#modal', action);
+                    App.utils.doc('#modalTitle').textContent = 'Excluir Turma';
+                    App.utils.doc('#modalMessage').textContent = `Tem certeza que deseja excluir a turma "${activeTurma.name}"? TODOS os dados desta turma serão perdidos permanentemente.`;
+                },
+                populateConfigForm() {
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { config } = activeTurma;
+                    for (const key in config) {
+                        if (key === 'reportRanges') config.reportRanges.forEach((val, i) => { const el = App.utils.doc(`#range${i + 1}`); if (el) el.value = val; });
+                        else { const el = App.utils.doc(`#${key}`); if (el) el.value = config[key]; }
+                    }
+                },
                 updateConfigSummary() {
                     const tempConfig = this.getTempConfig();
-                    App.utils.doc('#approvalRuleSummary').innerHTML = `<strong>Regra Atual:</strong> Para ser aprovado, o aluno precisa de no mínimo <strong>${tempConfig.minNotaBimestre}</strong> pontos EM CADA DISCIPLINA de cada um dos <strong>${tempConfig.numBimestres}</strong> bimestres E um total de <strong>${tempConfig.minNotaTotal}</strong> pontos no ano.`;
+                    App.utils.doc('#approvalRuleSummary').innerHTML = `<strong>Regra Atual:</strong> Mínimo de <strong>${tempConfig.minNotaBimestre}</strong> pts por disciplina/bimestre E <strong>${tempConfig.minNotaTotal}</strong> pts no total do ano.`;
                 },
-
                 getTempConfig() {
-                    const ranges = Array.from(App.utils.docAll('.report-range-input')).map(el => parseFloat(el.value) || 0);
                     return {
-                        numBimestres: parseInt(App.utils.doc('#numBimestres').value) || 1,
-                        maxAtividade: parseFloat(App.utils.doc('#maxAtividade').value) || 0,
-                        maxTrabalho: parseFloat(App.utils.doc('#maxTrabalho').value) || 0,
-                        maxProva: parseFloat(App.utils.doc('#maxProva').value) || 0,
-                        minNotaBimestre: parseFloat(App.utils.doc('#minNotaBimestre').value) || 0,
-                        minNotaTotal: parseFloat(App.utils.doc('#minNotaTotal').value) || 0,
-                        reportRanges: ranges
+                        numBimestres: parseInt(App.utils.doc('#numBimestres').value) || 1, maxAtividade: parseFloat(App.utils.doc('#maxAtividade').value) || 0,
+                        maxTrabalho: parseFloat(App.utils.doc('#maxTrabalho').value) || 0, maxProva: parseFloat(App.utils.doc('#maxProva').value) || 0,
+                        minNotaBimestre: parseFloat(App.utils.doc('#minNotaBimestre').value) || 0, minNotaTotal: parseFloat(App.utils.doc('#minNotaTotal').value) || 0,
+                        reportRanges: Array.from(App.utils.docAll('.report-range-input')).map(el => parseFloat(el.value) || 0)
                     };
                 },
-
-                handleConfigApply() {
+                async handleConfigApply() {
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const configBtn = App.utils.doc('#aplicarConfig');
                     const newConfig = this.getTempConfig();
                     const validationError = App.logic.validateConfig(newConfig);
                     if (validationError) return App.utils.showAlert(validationError, 'error');
-
-                    const oldConfig = { ...App.state.config };
-                    if (JSON.stringify(oldConfig) === JSON.stringify(newConfig)) {
-                        return App.utils.showAlert('Nenhuma configuração foi alterada.', 'warning');
-                    }
-
-                    const bimestresChanged = oldConfig.numBimestres !== newConfig.numBimestres;
-                    let message = 'Alterar configurações irá recalcular o status de todos os alunos. Deseja continuar?';
+                    if (JSON.stringify(activeTurma.config) === JSON.stringify(newConfig)) return App.utils.showAlert('Nenhuma configuração foi alterada.', 'warning');
                     
-                    if (bimestresChanged && App.state.students.length > 0) {
-                        if (newConfig.numBimestres < oldConfig.numBimestres) {
-                            message = `Você está REDUZINDO o número de bimestres. Isso removerá permanentemente os dados dos bimestres excedentes de todos os alunos. Deseja continuar?`;
-                        } else {
-                            message = `Você está AUMENTANDO o número de bimestres. Os novos bimestres serão adicionados em branco para todos os alunos. Deseja continuar?`;
-                        }
-                    }
-                    
-                    const action = () => {
+                    const action = async () => {
+                        App.utils.setButtonLoadingState(configBtn, true, 'Aplicando...');
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        const bimestresChanged = activeTurma.config.numBimestres !== newConfig.numBimestres;
                         if (bimestresChanged) {
-                            App.state.students.forEach(student => {
-                                if (newConfig.numBimestres < student.bimestres.length) {
-                                    student.bimestres = student.bimestres.slice(0, newConfig.numBimestres);
-                                } else {
-                                    while (student.bimestres.length < newConfig.numBimestres) {
-                                        student.bimestres.push({});
-                                    }
-                                }
+                            activeTurma.students.forEach(student => {
+                                if (newConfig.numBimestres < student.bimestres.length) student.bimestres.length = newConfig.numBimestres;
+                                else while (student.bimestres.length < newConfig.numBimestres) student.bimestres.push({});
                             });
                         }
-                        App.state.config = newConfig;
+                        activeTurma.config = newConfig;
                         if (App.storage.save()) {
+                            await App.utils.showButtonSuccessState(configBtn, 'Aplicado!');
                             App.utils.showAlert('Configurações aplicadas e dados recalculados!', 'success');
                             this.renderAll();
-                        }
+                        } else { App.utils.setButtonLoadingState(configBtn, false); }
                     };
 
                     App.utils.showModal('#modal', action);
                     App.utils.doc('#modalTitle').textContent = 'Confirmar Mudança de Configuração';
-                    App.utils.doc('#modalMessage').textContent = message;
+                    App.utils.doc('#modalMessage').textContent = 'Alterar as configurações irá recalcular o status de todos os alunos. Continuar?';
                 },
-
                 renderStudents() {
-                    const { config } = App.state;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { config, students } = activeTurma;
                     const theadRow = App.utils.doc('#studentsTable thead tr');
                     const list = App.utils.doc('#studentsList');
-
                     theadRow.innerHTML = '';
-                    let headersHTML = `
-                        <th data-sort="name">Nome</th>
-                        <th data-sort="studentId">Matrícula</th>
-                    `;
-                    for (let i = 0; i < config.numBimestres; i++) {
-                        headersHTML += `<th data-sort="bimestreTotals.${i}">${i + 1}º Bim.</th>`;
-                    }
-                    headersHTML += `
-                        <th data-sort="totalFaltas">Faltas</th>
-                        <th data-sort="totalGeral">Pontos (Total)</th>
-                        <th data-sort="average">Média (0-10)</th>
-                        <th data-sort="status.text">Status</th>
-                        <th>Ações</th>
-                    `;
+                    let headersHTML = `<th data-sort="name">Nome</th><th data-sort="studentId">Matrícula</th>`;
+                    for (let i = 0; i < config.numBimestres; i++) headersHTML += `<th data-sort="bimestreTotals.${i}">${i + 1}º Bim.</th>`;
+                    headersHTML += `<th data-sort="totalFaltas">Faltas</th><th data-sort="totalGeral">Pontos</th><th data-sort="average">Média</th><th data-sort="status.text">Status</th><th>Ações</th>`;
                     theadRow.innerHTML = headersHTML;
-
                     list.innerHTML = '';
                     const query = App.utils.doc('#searchStudent').value.toLowerCase();
-                    const filtered = App.state.students.filter(s => s.name.toLowerCase().includes(query) || String(s.studentId).toLowerCase().includes(query));
-                    
+                    const filtered = students.filter(s => s.name.toLowerCase().includes(query) || String(s.studentId).toLowerCase().includes(query));
                     const sorted = [...filtered].sort((a, b) => {
                         const get = (obj, path) => path.split('.').reduce((o, i) => (o ? o[i] : undefined), obj);
-                        const valA = get(a, App.state.sort.column);
-                        const valB = get(b, App.state.sort.column);
-                        if (typeof valA === 'string') {
-                            return App.state.sort.order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                        }
+                        const valA = get(a, App.state.sort.column), valB = get(b, App.state.sort.column);
+                        if (typeof valA === 'string') return App.state.sort.order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
                         return App.state.sort.order === 'asc' ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
                     });
-
                     App.utils.doc('#emptyMessage').classList.toggle('hidden', sorted.length > 0);
                     sorted.forEach(s => {
-                        const idx = App.state.students.findIndex(st => st.studentId === s.studentId);
+                        const idx = students.findIndex(st => st.studentId === s.studentId);
                         const row = list.insertRow();
-                        
                         let rowHTML = `
-                            <td>${s.name}</td>
-                            <td>${s.studentId}</td>
-                        `;
+                            <td data-label="Nome">${s.name}</td>
+                            <td data-label="Matrícula">${s.studentId}</td>`;
                         for (let i = 0; i < config.numBimestres; i++) {
-                            rowHTML += `<td>${(s.bimestreTotals[i] || 0).toFixed(1)}</td>`;
+                            rowHTML += `<td data-label="${i + 1}º Bim.">${(s.bimestreTotals[i] || 0).toFixed(1)}</td>`;
                         }
                         rowHTML += `
-                            <td>${s.totalFaltas || 0}</td>
-                            <td>${s.totalGeral}</td>
-                            <td>${(s.average || 0).toFixed(1)}</td>
-                            <td class="${s.status.class || ''}">${s.status.text}</td>
-                            <td class="actions">
-                                <button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim" aria-label="Gerar boletim de ${s.name}">📄</button>
-                                <button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico" aria-label="Ver detalhes e gráfico de ${s.name}">📊</button>
-                                <button class="btn-small" data-action="edit" data-index="${idx}" title="Editar" aria-label="Editar aluno ${s.name}">✏️</button>
-                                <button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir" aria-label="Excluir aluno ${s.name}">🗑️</button>
-                            </td>
-                        `;
+                            <td data-label="Faltas">${s.totalFaltas || 0}</td>
+                            <td data-label="Pontos (Total)">${s.totalGeral}</td>
+                            <td data-label="Média (0-10)">${(s.average || 0).toFixed(1)}</td>
+                            <td data-label="Status" class="${s.status.class || ''}">${s.status.text}</td>
+                            <td class="actions-cell">
+                                <div class="actions">
+                                    <button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim">📄</button>
+                                    <button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico">📊</button>
+                                    <button class="btn-small" data-action="edit" data-index="${idx}" title="Editar">✏️</button>
+                                    <button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir">🗑️</button>
+                                </div>
+                            </td>`;
                         row.innerHTML = rowHTML;
                     });
-
                     App.utils.docAll('#studentsTable th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
                     const activeSortHeader = App.utils.doc(`#studentsTable th[data-sort="${App.state.sort.column}"]`);
-                    if(activeSortHeader) {
-                        activeSortHeader.classList.add(App.state.sort.order === 'asc' ? 'sort-asc' : 'sort-desc');
-                    }
+                    if(activeSortHeader) activeSortHeader.classList.add(App.state.sort.order === 'asc' ? 'sort-asc' : 'sort-desc');
                 },
-
                 renderFormStructure() {
-                    const { numBimestres } = App.state.config;
-                    const tabsContainer = App.utils.doc('#bimestreTabsContainer');
-                    const contentContainer = App.utils.doc('#bimestresContentContainer');
-                    tabsContainer.innerHTML = '';
-                    contentContainer.innerHTML = '';
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { numBimestres } = activeTurma.config;
+                    const tabsContainer = App.utils.doc('#bimestreTabsContainer'), contentContainer = App.utils.doc('#bimestresContentContainer');
+                    tabsContainer.innerHTML = ''; contentContainer.innerHTML = '';
                     for (let i = 0; i < numBimestres; i++) {
                         tabsContainer.innerHTML += `<div class="bimestre-tab ${i === 0 ? 'active' : ''}" data-bimestre="${i}">${i + 1}º Bimestre</div>`;
                         contentContainer.innerHTML += `<div id="bimestre${i}" class="bimestre-content ${i > 0 ? 'hidden' : ''}"><h3>📊 Notas do ${i + 1}º Bimestre</h3><div id="disciplinasBimestre${i}"></div></div>`;
                         this.renderDisciplinasInBimestre(i);
                     }
                 },
-
                 renderDisciplinasInBimestre(bimestreIndex) {
-                    const container = App.utils.doc(`#disciplinasBimestre${bimestreIndex}`);
-                    if (!container) return;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const container = App.utils.doc(`#disciplinasBimestre${bimestreIndex}`); if (!container) return;
                     container.innerHTML = '';
-                    App.state.disciplinas.forEach(nome => {
+                    activeTurma.disciplinas.forEach(nome => {
                         const id = App.utils.toId(nome);
-                        const section = document.createElement('details');
-                        section.className = 'disciplina-section';
-                        section.open = true;
-                        section.innerHTML = `
-                            <summary><h4>${nome}</h4></summary>
-                            <div class="disciplina-content grid grid-5">
-                                <div class="form-group"><label for="${id}${bimestreIndex}_atividade">Ativ.</label><input type="number" id="${id}${bimestreIndex}_atividade" class="nota-input" min="0" step="0.1" value="0"></div>
-                                <div class="form-group"><label for="${id}${bimestreIndex}_trabalho">Trab.</label><input type="number" id="${id}${bimestreIndex}_trabalho" class="nota-input" min="0" step="0.1" value="0"></div>
-                                <div class="form-group"><label for="${id}${bimestreIndex}_prova">Prova</label><input type="number" id="${id}${bimestreIndex}_prova" class="nota-input" min="0" step="0.1" value="0"></div>
-                                <div class="form-group"><label for="${id}${bimestreIndex}_faltas">Faltas</label><input type="number" id="${id}${bimestreIndex}_faltas" class="nota-input" min="0" step="1" value="0"></div>
-                                <div class="form-group"><label for="${id}${bimestreIndex}_total">Total</label><input type="text" id="${id}${bimestreIndex}_total" class="total-display" readonly value="0.0"></div>
-                            </div>`;
+                        const section = document.createElement('details'); section.className = 'disciplina-section'; section.open = true;
+                        section.innerHTML = `<summary><h4>${nome}</h4></summary><div class="disciplina-content grid grid-5"><div class="form-group"><label for="${id}${bimestreIndex}_atividade">Ativ.</label><input type="number" id="${id}${bimestreIndex}_atividade" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_trabalho">Trab.</label><input type="number" id="${id}${bimestreIndex}_trabalho" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_prova">Prova</label><input type="number" id="${id}${bimestreIndex}_prova" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_faltas">Faltas</label><input type="number" id="${id}${bimestreIndex}_faltas" class="nota-input" min="0" step="1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_total">Total</label><input type="text" id="${id}${bimestreIndex}_total" class="total-display" readonly value="0.0"></div></div>`;
                         container.appendChild(section);
                     });
                 },
-                
                 updateFormTotals() {
                     const studentData = this.getFormData();
                     const { totalGeral, status } = App.logic.calculateTotalsAndStatus(studentData);
@@ -745,546 +808,278 @@
                     App.utils.doc(`#statusFinal`).value = status.text;
                     App.utils.doc(`#statusFinal`).className = `total-display ${status.class || ''}`;
                 },
-                
                 validateNoteSum(targetInput) {
-                    const idParts = targetInput.id.match(/^([a-z0-9_]+)(\d+)_(\w+)$/);
-                    if(!idParts) return;
-                    const baseId = idParts[1];
-                    const bimestreIndex = idParts[2];
-                    const { config } = App.state;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const idParts = targetInput.id.match(/^([a-z0-9_]+)(\d+)_(\w+)$/); if(!idParts) return;
+                    const [ , baseId, bimestreIndex] = idParts; const { config } = activeTurma;
                     const maxTotal = config.maxAtividade + config.maxTrabalho + config.maxProva;
-                    
                     const atv = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_atividade`).value) || 0;
                     const trb = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_trabalho`).value) || 0;
                     const prv = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_prova`).value) || 0;
-                    
                     const currentSum = atv + trb + prv;
                     if (currentSum > maxTotal && maxTotal > 0) {
-                        const overage = currentSum - maxTotal;
-                        let currentValue = parseFloat(targetInput.value);
-                        targetInput.value = (currentValue - overage).toFixed(1);
-                        App.utils.showAlert(`Soma das notas excede o máximo (${maxTotal}). Valor ajustado.`, 'warning');
-                        this.updateFormTotals();
+                        targetInput.value = (parseFloat(targetInput.value) - (currentSum - maxTotal)).toFixed(1);
+                        App.utils.showAlert(`Soma excede o máximo (${maxTotal}). Valor ajustado.`, 'warning'); this.updateFormTotals();
                     }
                 },
-                
                 validateAndClampInput(e) {
-                    const input = e.target;
-                    if (!input.value) return;
-                    let value = parseFloat(input.value);
-                    const min = parseFloat(input.min) ?? 0;
-                    if (input.id.includes('faltas')) {
-                        if (value < min || !Number.isInteger(value)) input.value = Math.max(min, Math.floor(value) || 0);
-                        return;
-                    }
-                    const { config } = App.state;
-                    let max;
-                    if (input.id.includes('atividade')) max = config.maxAtividade;
-                    else if (input.id.includes('trabalho')) max = config.maxTrabalho;
-                    else if (input.id.includes('prova')) max = config.maxProva;
-                    if (max !== undefined && value > max) input.value = max;
-                    if (value < min) input.value = min;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return; const input = e.target;
+                    if (!input.value) return; let value = parseFloat(input.value); const min = parseFloat(input.min) ?? 0;
+                    if (input.id.includes('faltas')) { if (value < min || !Number.isInteger(value)) input.value = Math.max(min, Math.floor(value) || 0); return; }
+                    const { config } = activeTurma; let max;
+                    if (input.id.includes('atividade')) max = config.maxAtividade; else if (input.id.includes('trabalho')) max = config.maxTrabalho; else if (input.id.includes('prova')) max = config.maxProva;
+                    if (max !== undefined && value > max) input.value = max; if (value < min) input.value = min;
                 },
-                
                 getFormData() {
-                    const studentData = { bimestres: [], disciplinas: App.state.disciplinas };
-                    const { numBimestres, maxAtividade, maxTrabalho, maxProva } = App.state.config;
-                    const maxTotal = maxAtividade + maxTrabalho + maxProva;
-                    for (let i = 0; i < numBimestres; i++) {
+                    const activeTurma = App.getActiveTurma();
+                    const studentData = { bimestres: [], disciplinas: activeTurma.disciplinas };
+                    const { config } = activeTurma; const maxTotal = config.maxAtividade + config.maxTrabalho + config.maxProva;
+                    for (let i = 0; i < config.numBimestres; i++) {
                         studentData.bimestres[i] = {};
-                        App.state.disciplinas.forEach(d => {
-                            const id = App.utils.toId(d);
-                            const doc = App.utils.doc;
-                            const atv = parseFloat(doc(`#${id}${i}_atividade`)?.value) || 0;
-                            const trb = parseFloat(doc(`#${id}${i}_trabalho`)?.value) || 0;
-                            const prv = parseFloat(doc(`#${id}${i}_prova`)?.value) || 0;
-                            const faltas = parseInt(doc(`#${id}${i}_faltas`)?.value) || 0;
+                        activeTurma.disciplinas.forEach(d => {
+                            const id = App.utils.toId(d); const doc = App.utils.doc;
+                            const atv = parseFloat(doc(`#${id}${i}_atividade`)?.value) || 0, trb = parseFloat(doc(`#${id}${i}_trabalho`)?.value) || 0;
+                            const prv = parseFloat(doc(`#${id}${i}_prova`)?.value) || 0, faltas = parseInt(doc(`#${id}${i}_faltas`)?.value) || 0;
                             const total = Math.min(atv + trb + prv, maxTotal);
                             if (doc(`#${id}${i}_total`)) doc(`#${id}${i}_total`).value = total.toFixed(1);
                             studentData.bimestres[i][id] = { total, faltas, atividade: atv, trabalho: trb, prova: prv };
                         });
                     }
-                    studentData.name = App.utils.doc('#studentName').value.trim();
-                    studentData.studentId = App.utils.doc('#studentId').value.trim();
+                    studentData.name = App.utils.doc('#studentName').value.trim(); studentData.studentId = App.utils.doc('#studentId').value.trim();
                     return studentData;
                 },
-                
-                handleFormSubmit(e) {
+                async handleFormSubmit(e) {
                     e.preventDefault();
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const btn = e.target.querySelector('button[type="submit"]');
-                    btn.disabled = true;
+                    App.utils.setButtonLoadingState(btn, true);
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     const studentData = this.getFormData();
                     const isEditing = !!App.state.studentToEdit;
                     const validation = App.logic.validateStudentData(studentData, isEditing);
                     if (!validation.valid) {
                         App.utils.showAlert(validation.message, 'error');
-                        btn.disabled = false;
+                        App.utils.setButtonLoadingState(btn, false);
                         return;
                     }
                     const metrics = App.logic.calculateTotalsAndStatus(studentData);
                     const finalStudent = { ...studentData, ...metrics };
                     if (isEditing) {
-                        const studentIndex = App.state.students.findIndex(s => s.studentId === App.state.studentToEdit.studentId);
-                        if (studentIndex > -1) App.state.students[studentIndex] = finalStudent;
-                    } else {
-                        App.state.students.push(finalStudent);
-                    }
+                        const studentIndex = activeTurma.students.findIndex(s => s.studentId === App.state.studentToEdit.studentId);
+                        if (studentIndex > -1) activeTurma.students[studentIndex] = finalStudent;
+                    } else activeTurma.students.push(finalStudent);
+                    
                     if (App.storage.save()) {
                         App.utils.showAlert(`Aluno "${finalStudent.name}" ${isEditing ? 'atualizado' : 'cadastrado'}!`);
-                        this.renderStudents();
-                        this.updateStatistics();
-                        this.renderAdvancedReports();
+                        this.renderStudents(); this.updateStatistics(); this.renderAdvancedReports();
+                        await App.utils.showButtonSuccessState(btn);
                         this.clearForm();
-                    }
-                    btn.disabled = false;
+                    } else App.utils.setButtonLoadingState(btn, false);
                 },
-                
                 clearForm() {
-                    const form = App.utils.doc('#student-form');
-                    form.reset();
-                    form.classList.add('hidden');
+                    const form = App.utils.doc('#student-form'); form.reset(); form.classList.add('hidden');
                     App.utils.doc('#form-placeholder').classList.remove('hidden');
                     App.utils.doc('#studentId').classList.remove('is-invalid');
-                    App.utils.doc('#studentId-validation').textContent = '';
-                    App.state.studentToEdit = null;
+                    App.utils.doc('#studentId-validation').textContent = ''; App.state.studentToEdit = null;
                     this.updateFormTotals();
                 },
-                
                 showAddForm() {
                     this.clearForm();
                     App.utils.doc('#student-form-title').textContent = '👨‍🎓 Adicionar Novo Aluno';
                     App.utils.doc('#form-placeholder').classList.add('hidden');
                     App.utils.doc('#student-form').classList.remove('hidden');
-                    App.utils.doc('#submit-btn').textContent = '💾 Salvar Novo Aluno';
+                    App.utils.doc('#submit-btn').innerHTML = '💾 <span class="btn-text">Salvar Novo Aluno</span>';
                     App.utils.doc('#student-management-card').scrollIntoView({ behavior: 'smooth' });
                 },
-                
                 populateForm(student) {
-                    this.clearForm();
-                    App.state.studentToEdit = student;
-                    const doc = App.utils.doc;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    this.clearForm(); App.state.studentToEdit = student; const doc = App.utils.doc;
                     doc('#student-form-title').textContent = `✏️ Editando: ${student.name}`;
-                    doc('#studentName').value = student.name;
-                    doc('#studentId').value = student.studentId;
-                    for (let i = 0; i < App.state.config.numBimestres; i++) {
-                        App.state.disciplinas.forEach(d => {
-                            const id = App.utils.toId(d);
-                            const nota = student.bimestres[i]?.[id] || {};
-                            doc(`#${id}${i}_atividade`).value = nota.atividade || 0;
-                            doc(`#${id}${i}_trabalho`).value = nota.trabalho || 0;
-                            doc(`#${id}${i}_prova`).value = nota.prova || 0;
-                            doc(`#${id}${i}_faltas`).value = nota.faltas || 0;
+                    doc('#studentName').value = student.name; doc('#studentId').value = student.studentId;
+                    for (let i = 0; i < activeTurma.config.numBimestres; i++) {
+                        activeTurma.disciplinas.forEach(d => {
+                            const id = App.utils.toId(d); const nota = student.bimestres[i]?.[id] || {};
+                            doc(`#${id}${i}_atividade`).value = nota.atividade || 0; doc(`#${id}${i}_trabalho`).value = nota.trabalho || 0;
+                            doc(`#${id}${i}_prova`).value = nota.prova || 0; doc(`#${id}${i}_faltas`).value = nota.faltas || 0;
                         });
                     }
                     this.updateFormTotals();
                     doc('#form-placeholder').classList.add('hidden');
                     doc('#student-form').classList.remove('hidden');
-                    doc('#submit-btn').textContent = '💾 Atualizar Aluno';
+                    doc('#submit-btn').innerHTML = '💾 <span class="btn-text">Atualizar Aluno</span>';
                     doc('#student-management-card').scrollIntoView({ behavior: 'smooth' });
                 },
-                
                 handleTableClick(e) {
-                    const target = e.target.closest('button');
-                    if (!target) return;
-                    const action = target.dataset.action;
-                    const index = parseInt(target.dataset.index);
-                    const student = App.state.students[index];
-                    if (!student) return;
-
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const target = e.target.closest('button'); if (!target) return;
+                    const action = target.dataset.action; const index = parseInt(target.dataset.index);
+                    const student = activeTurma.students[index]; if (!student) return;
                     switch (action) {
                         case 'edit': this.populateForm(student); break;
                         case 'delete':
                             App.utils.showModal('#modal', () => {
-                                App.state.students.splice(index, 1);
-                                if (App.storage.save()) {
-                                    this.renderAll();
-                                    App.utils.showAlert(`"${student.name}" excluído!`);
-                                }
+                                activeTurma.students.splice(index, 1);
+                                if (App.storage.save()) { this.renderAll(); App.utils.showAlert(`"${student.name}" excluído!`); }
                             });
                             App.utils.doc('#modalTitle').textContent = 'Excluir Aluno';
-                            App.utils.doc('#modalMessage').textContent = `Tem certeza que deseja excluir "${student.name}"? Esta ação não pode ser desfeita.`;
+                            App.utils.doc('#modalMessage').textContent = `Tem certeza que deseja excluir "${student.name}"?`;
                             break;
                         case 'details': this.showStudentDetails(student); break;
                         case 'boletim': this.showBoletim(student); break;
                     }
                 },
-                
                 validateMatriculaOnBlur() {
-                    const input = App.utils.doc('#studentId');
-                    const validationMsg = App.utils.doc('#studentId-validation');
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const input = App.utils.doc('#studentId'); const validationMsg = App.utils.doc('#studentId-validation');
                     const studentId = input.value.trim();
-                    if (!studentId) {
-                        input.classList.remove('is-invalid');
-                        validationMsg.textContent = '';
-                        return;
-                    }
-                    const isDuplicate = App.state.students.some(s => s.studentId === studentId && s.studentId !== App.state.studentToEdit?.studentId);
-                    if (isDuplicate) {
-                        input.classList.add('is-invalid');
-                        validationMsg.textContent = 'Esta matrícula já está em uso.';
-                    } else {
-                        input.classList.remove('is-invalid');
-                        validationMsg.textContent = '';
-                    }
+                    if (!studentId) { input.classList.remove('is-invalid'); validationMsg.textContent = ''; return; }
+                    const isDuplicate = activeTurma.students.some(s => s.studentId === studentId && s.studentId !== App.state.studentToEdit?.studentId);
+                    input.classList.toggle('is-invalid', isDuplicate);
+                    validationMsg.textContent = isDuplicate ? 'Esta matrícula já está em uso.' : '';
                 },
-                
                 handleSort(e) {
-                    const column = e.target.dataset.sort;
-                    if (!column) return;
+                    const column = e.target.dataset.sort; if (!column) return;
                     const { sort } = App.state;
-                    if (sort.column === column) {
-                        sort.order = sort.order === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        sort.column = column;
-                        sort.order = 'asc';
-                    }
+                    sort.column = (sort.column === column && sort.order === 'asc') ? column : column;
+                    sort.order = (sort.column === column && sort.order === 'asc') ? 'desc' : 'asc';
                     this.renderStudents();
                 },
-                
                 switchBimestreTab(bimestreIndex) {
                     App.utils.docAll(`#bimestreTabsContainer .bimestre-tab`).forEach(t => t.classList.remove('active'));
                     App.utils.docAll(`#bimestresContentContainer .bimestre-content`).forEach(c => c.classList.add('hidden'));
                     App.utils.doc(`.bimestre-tab[data-bimestre="${bimestreIndex}"]`).classList.add('active');
                     App.utils.doc(`#bimestre${bimestreIndex}`).classList.remove('hidden');
                 },
-                
                 updateStatistics() {
-                    const total = App.state.students.length;
-                    const approved = App.state.students.filter(s => s.status.text === 'Aprovado').length;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const total = activeTurma.students.length;
+                    const approved = activeTurma.students.filter(s => s.status.text === 'Aprovado').length;
                     App.utils.doc('#totalStudents').textContent = total;
                     App.utils.doc('#approvedStudents').textContent = approved;
                     App.utils.doc('#failedStudents').textContent = total - approved;
                 },
-                
                 showStudentDetails(student) {
-                    // CORREÇÃO: Adiciona uma verificação para a existência do Chart.js
-                    if (typeof Chart === 'undefined') {
-                        console.error('Chart.js not loaded');
-                        App.utils.showAlert('Não foi possível carregar o gráfico. Verifique a conexão com a internet.', 'error');
-                        return;
-                    }
-
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    if (typeof Chart === 'undefined') return App.utils.showAlert('Gráfico indisponível offline.', 'error');
                     App.utils.doc('#detailsModalTitle').textContent = `Desempenho de: ${student.name}`;
                     App.utils.doc('#detailsModalSubtitle').textContent = `Média Geral: ${(student.average || 0).toFixed(1)} | Status: ${student.status.text}`;
-                    const { config } = App.state;
-                    const labels = App.state.disciplinas;
-                    const data = labels.map(d => {
-                        let total = 0;
-                        const id = App.utils.toId(d);
-                        for (let i = 0; i < config.numBimestres; i++) total += student.bimestres[i]?.[id]?.total || 0;
-                        return total;
-                    });
+                    const { config, disciplinas } = activeTurma; const labels = disciplinas;
+                    const data = labels.map(d => { let total = 0; const id = App.utils.toId(d); for (let i = 0; i < config.numBimestres; i++) total += student.bimestres[i]?.[id]?.total || 0; return total; });
                     const maxScorePerSubject = (config.maxAtividade + config.maxTrabalho + config.maxProva) * config.numBimestres;
                     if (App.state.charts.studentChart) App.state.charts.studentChart.destroy();
                     const ctx = App.utils.doc('#studentChart').getContext('2d');
-                    App.state.charts.studentChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: { labels, datasets: [{ label: 'Pontuação Total', data, backgroundColor: '#F2C94C' }] },
-                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: maxScorePerSubject > 0 ? maxScorePerSubject : 100 } }, plugins: { legend: { display: false } } }
-                    });
+                    App.state.charts.studentChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Pontuação Total', data, backgroundColor: '#F2C94C' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: maxScorePerSubject > 0 ? maxScorePerSubject : 100 } }, plugins: { legend: { display: false } } } });
                     App.utils.showModal('#detailsModal');
                 },
-                
                 showBoletim(student) {
-                    const { config, disciplinas } = App.state;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { config, disciplinas } = activeTurma;
                     let content = `<h3>Boletim - ${student.name}</h3><p><strong>Matrícula:</strong> ${student.studentId}</p><table><thead><tr><th>Disciplina</th>`;
-                    for (let i = 0; i < config.numBimestres; i++) content += `<th>${i + 1}º Bimestre</th>`;
+                    for (let i = 0; i < config.numBimestres; i++) content += `<th>${i + 1}º Bim.</th>`;
                     content += `<th>Total</th></tr></thead><tbody>`;
-                    disciplinas.forEach(d => {
-                        let totalDisc = 0;
-                        const id = App.utils.toId(d);
-                        content += `<tr><td>${d}</td>`;
-                        for (let i = 0; i < config.numBimestres; i++) {
-                            const nota = student.bimestres[i]?.[id]?.total || 0;
-                            totalDisc += nota;
-                            content += `<td>${nota.toFixed(1)}</td>`;
-                        }
-                        content += `<td><strong>${totalDisc.toFixed(1)}</strong></td></tr>`;
-                    });
+                    disciplinas.forEach(d => { let totalDisc = 0; const id = App.utils.toId(d); content += `<tr><td>${d}</td>`; for (let i = 0; i < config.numBimestres; i++) { const nota = student.bimestres[i]?.[id]?.total || 0; totalDisc += nota; content += `<td>${nota.toFixed(1)}</td>`; } content += `<td><strong>${totalDisc.toFixed(1)}</strong></td></tr>`; });
                     content += `</tbody></table><br><strong>Total de Pontos Anual: ${student.totalGeral}</strong><br><strong>Status Final: ${student.status.text}</strong>`;
-                    App.utils.doc('#boletimContent').innerHTML = content;
-                    App.utils.showModal('#boletimModal');
+                    App.utils.doc('#boletimContent').innerHTML = content; App.utils.showModal('#boletimModal');
                 },
-                
                 renderAdvancedReports() {
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const select = App.utils.doc('#reportSubject');
-                    select.innerHTML = App.state.disciplinas.map(d => `<option value="${d}">${d}</option>`).join('');
-                    if (App.state.disciplinas.length > 0) this.updateAdvancedChart();
+                    select.innerHTML = activeTurma.disciplinas.map(d => `<option value="${d}">${d}</option>`).join('');
+                    if (activeTurma.disciplinas.length > 0) this.updateAdvancedChart();
                 },
-                
                 handleReportRangeChange() {
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const ranges = Array.from(App.utils.docAll('.report-range-input')).map(el => parseFloat(el.value));
-                    for (let i = 0; i < ranges.length - 1; i++) {
-                        if (ranges[i] >= ranges[i + 1]) {
-                            ranges[i + 1] = ranges[i] + 1;
-                            App.utils.doc(`#range${i + 2}`).value = ranges[i + 1];
-                        }
-                    }
-                    App.state.config.reportRanges = ranges;
-                    App.storage.save();
-                    this.updateAdvancedChart();
+                    for (let i = 0; i < ranges.length - 1; i++) if (ranges[i] >= ranges[i + 1]) { ranges[i + 1] = ranges[i] + 1; App.utils.doc(`#range${i + 2}`).value = ranges[i + 1]; }
+                    activeTurma.config.reportRanges = ranges; App.storage.save(); this.updateAdvancedChart();
                 },
-                
                 updateAdvancedChart() {
-                    // CORREÇÃO: Adiciona uma verificação para a existência do Chart.js
-                    if (typeof Chart === 'undefined') {
-                        console.error('Chart.js not loaded. Cannot update advanced chart.');
-                        return;
-                    }
-
-                    const subjectName = App.utils.doc('#reportSubject').value;
-                    if (!subjectName) return;
-                    const subjectId = App.utils.toId(subjectName);
-                    const { config, students } = App.state;
-                    const rangesConfig = config.reportRanges;
-                    const labels = [`0-${rangesConfig[0]}%`, ...rangesConfig.slice(0, -1).map((r, i) => `${r + 1}-${rangesConfig[i + 1]}%`)];
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma || typeof Chart === 'undefined') return;
+                    const subjectName = App.utils.doc('#reportSubject').value; if (!subjectName) return;
+                    const subjectId = App.utils.toId(subjectName); const { config, students } = activeTurma;
+                    const rangesConfig = config.reportRanges; const labels = [`0-${rangesConfig[0]}%`, ...rangesConfig.slice(0, -1).map((r, i) => `${r + 1}-${rangesConfig[i + 1]}%`)];
                     const ranges = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
-                    const maxScoreBimestre = config.maxAtividade + config.maxTrabalho + config.maxProva;
-                    const maxScoreTotal = maxScoreBimestre * config.numBimestres;
+                    const maxScoreTotal = (config.maxAtividade + config.maxTrabalho + config.maxProva) * config.numBimestres;
                     if (maxScoreTotal > 0) {
-                        students.forEach(s => {
-                            let totalNota = 0;
-                            for (let i = 0; i < config.numBimestres; i++) totalNota += s.bimestres[i]?.[subjectId]?.total || 0;
-                            const percent = (totalNota / maxScoreTotal) * 100;
-                            for (let i = 0; i < rangesConfig.length; i++) {
-                                const prevRange = i > 0 ? rangesConfig[i-1] : 0;
-                                if (percent > prevRange && percent <= rangesConfig[i]) {
-                                    ranges[labels[i]]++;
-                                    break;
-                                }
-                            }
-                        });
+                        students.forEach(s => { let totalNota = 0; for (let i = 0; i < config.numBimestres; i++) totalNota += s.bimestres[i]?.[subjectId]?.total || 0; const percent = (totalNota / maxScoreTotal) * 100; for (let i = 0; i < rangesConfig.length; i++) { const prevRange = i > 0 ? rangesConfig[i-1] : 0; if (percent > prevRange && percent <= rangesConfig[i]) { ranges[labels[i]]++; break; } } });
                     }
                     if (App.state.charts.advancedReportChart) App.state.charts.advancedReportChart.destroy();
-                    App.state.charts.advancedReportChart = new Chart(App.utils.doc('#advancedReportChart').getContext('2d'), {
-                        type: 'bar',
-                        data: { labels: Object.keys(ranges), datasets: [{ label: `Alunos por faixa de nota em ${subjectName}`, data: Object.values(ranges), backgroundColor: ['#D73A49', '#F2994A', '#F2C94C', '#28A745', '#218838'] }] },
-                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-                    });
+                    App.state.charts.advancedReportChart = new Chart(App.utils.doc('#advancedReportChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(ranges), datasets: [{ label: `Alunos por faixa de nota`, data: Object.values(ranges), backgroundColor: ['#D73A49', '#F2994A', '#F2C94C', '#28A745', '#218838'] }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } } });
                 },
-                
                 renderDisciplinasConfig() {
-                    const list = App.utils.doc('#disciplinasList');
-                    list.innerHTML = '';
-                    App.state.disciplinas.forEach(d => {
-                        list.innerHTML += `<span class="disciplina-tag">${d}<button data-disciplina="${d}" title="Remover" aria-label="Remover ${d}">×</button></span>`;
-                    });
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const list = App.utils.doc('#disciplinasList'); list.innerHTML = '';
+                    activeTurma.disciplinas.forEach(d => { list.innerHTML += `<span class="disciplina-tag">${d}<button data-disciplina="${d}" title="Remover">×</button></span>`; });
                 },
-                
                 handleAddDisciplina() {
-                    const input = App.utils.doc('#novaDisciplina');
-                    const nome = input.value.trim();
-                    if (!nome) return;
-                    if (App.state.disciplinas.map(d => d.toLowerCase()).includes(nome.toLowerCase())) {
-                        return App.utils.showAlert('Essa disciplina já existe.', 'warning');
-                    }
-                    const action = () => {
-                        App.state.disciplinas.push(nome);
-                        if (App.storage.save()) {
-                            App.utils.showAlert('Disciplina adicionada!', 'success');
-                            this.renderAll();
-                            input.value = '';
-                        }
-                    };
-                    if (App.state.students.length > 0) {
-                        App.utils.showModal('#modal', action);
-                        App.utils.doc('#modalTitle').textContent = 'Adicionar Disciplina';
-                        App.utils.doc('#modalMessage').textContent = 'Adicionar uma nova disciplina irá afetar todos os alunos cadastrados. Deseja continuar?';
-                    } else { action(); }
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const input = App.utils.doc('#novaDisciplina'); const nome = input.value.trim(); if (!nome) return;
+                    if (activeTurma.disciplinas.map(d => d.toLowerCase()).includes(nome.toLowerCase())) return App.utils.showAlert('Essa disciplina já existe.', 'warning');
+                    const action = () => { activeTurma.disciplinas.push(nome); if (App.storage.save()) { App.utils.showAlert('Disciplina adicionada!'); this.renderAll(); input.value = ''; } };
+                    if (activeTurma.students.length > 0) { App.utils.showModal('#modal', action); App.utils.doc('#modalTitle').textContent = 'Adicionar Disciplina'; App.utils.doc('#modalMessage').textContent = 'Adicionar uma nova disciplina irá afetar todos os alunos cadastrados nesta turma. Continuar?'; } else action();
                 },
-                
                 handleDisciplinaRemove(e) {
-                    if (!e.target.dataset.disciplina) return;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma || !e.target.dataset.disciplina) return;
                     const nome = e.target.dataset.disciplina;
-                    const action = () => {
-                        App.state.disciplinas = App.state.disciplinas.filter(d => d !== nome);
-                        if (App.storage.save()) {
-                            App.utils.showAlert('Disciplina removida!', 'success');
-                            this.renderAll();
-                        }
-                    };
-                    if (App.state.students.length > 0) {
-                        App.utils.showModal('#modal', action);
-                        App.utils.doc('#modalTitle').textContent = 'Remover Disciplina';
-                        App.utils.doc('#modalMessage').textContent = `Remover "${nome}" irá apagar todas as notas associadas a ela em todos os alunos. Deseja continuar?`;
-                    } else { action(); }
+                    const action = () => { activeTurma.disciplinas = activeTurma.disciplinas.filter(d => d !== nome); if (App.storage.save()) { App.utils.showAlert('Disciplina removida!'); this.renderAll(); } };
+                    if (activeTurma.students.length > 0) { App.utils.showModal('#modal', action); App.utils.doc('#modalTitle').textContent = 'Remover Disciplina'; App.utils.doc('#modalMessage').textContent = `Remover "${nome}" irá apagar todas as notas associadas a ela em todos os alunos desta turma. Continuar?`; } else action();
                 },
-                
                 handleBulkAddDisciplinas() {
-                    const modal = App.utils.doc('#disciplinasModal');
-                    modal.querySelector('textarea').value = App.state.disciplinas.join('\n');
-                    const confirmAction = () => {
-                        const text = modal.querySelector('textarea').value;
-                        const novasDisciplinas = text.split('\n').map(d => d.trim()).filter(Boolean);
-                        const finalAction = () => {
-                            App.state.disciplinas = novasDisciplinas;
-                            if (App.storage.save()) {
-                                App.utils.showAlert('Lista de disciplinas atualizada!', 'success');
-                                this.renderAll();
-                            }
-                        };
-                        if (App.state.students.length > 0) {
-                            App.utils.showModal('#modal', finalAction);
-                            App.utils.doc('#modalTitle').textContent = 'Atualizar Disciplinas';
-                            App.utils.doc('#modalMessage').textContent = 'Alterar a lista de disciplinas irá afetar todos os alunos e pode remover dados. Deseja continuar?';
-                        } else {
-                            finalAction();
-                        }
-                    };
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const modal = App.utils.doc('#disciplinasModal'); modal.querySelector('textarea').value = activeTurma.disciplinas.join('\n');
+                    const confirmAction = () => { const novasDisciplinas = modal.querySelector('textarea').value.split('\n').map(d => d.trim()).filter(Boolean); const finalAction = () => { activeTurma.disciplinas = novasDisciplinas; if (App.storage.save()) { App.utils.showAlert('Lista de disciplinas atualizada!'); this.renderAll(); } }; if (activeTurma.students.length > 0) { App.utils.showModal('#modal', finalAction); App.utils.doc('#modalTitle').textContent = 'Atualizar Disciplinas'; App.utils.doc('#modalMessage').textContent = 'Alterar a lista de disciplinas irá afetar todos os alunos e pode remover dados. Continuar?'; } else finalAction(); };
                     App.utils.showModal('#disciplinasModal', confirmAction);
                 },
-                
                 exportCSV() {
-                    const { config, disciplinas, students } = App.state;
-                    let csvContent = "data:text/csv;charset=utf-8,";
-                    let headers = ['Matricula', 'Nome'];
-                    for (let i = 0; i < config.numBimestres; i++) {
-                        disciplinas.forEach(d => {
-                            headers.push(`${d}_Nota_Bim${i + 1}`);
-                            headers.push(`${d}_Faltas_Bim${i + 1}`);
-                        });
-                    }
-                    headers.push('Total_Pontos', 'Status');
-                    csvContent += headers.join(';') + '\r\n';
-                    students.forEach(s => {
-                        let row = [`"${s.studentId}"`, `"${s.name}"`];
-                        for (let i = 0; i < config.numBimestres; i++) {
-                            disciplinas.forEach(d => {
-                                const nota = s.bimestres[i]?.[App.utils.toId(d)];
-                                row.push(nota?.total || 0);
-                                row.push(nota?.faltas || 0);
-                            });
-                        }
-                        row.push(s.totalGeral, s.status.text);
-                        csvContent += row.join(';') + '\r\n';
-                    });
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", "export_alunos.csv");
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { config, disciplinas, students } = activeTurma; let csvContent = "data:text/csv;charset=utf-8,"; let headers = ['Matricula', 'Nome'];
+                    for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => headers.push(`${d}_Nota_Bim${i + 1}`, `${d}_Faltas_Bim${i + 1}`));
+                    headers.push('Total_Pontos', 'Status'); csvContent += headers.join(';') + '\r\n';
+                    students.forEach(s => { let row = [`"${s.studentId}"`, `"${s.name}"`]; for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => { const nota = s.bimestres[i]?.[App.utils.toId(d)]; row.push(nota?.total || 0); row.push(nota?.faltas || 0); }); row.push(s.totalGeral, s.status.text); csvContent += row.join(';') + '\r\n'; });
+                    const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `export_turma_${activeTurma.name}.csv`); link.click(); link.remove();
                 },
-                
                 backupData() {
-                    const backup = { version: "2.2.6", students: App.state.students, config: App.state.config, disciplinas: App.state.disciplinas };
-                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `backup_notasys_pro_${new Date().toISOString().slice(0, 10)}.json`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const blob = new Blob([JSON.stringify(activeTurma, null, 2)], { type: 'application/json' });
+                    const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+                    link.download = `backup_turma_${activeTurma.name}_${new Date().toISOString().slice(0, 10)}.json`;
+                    link.click(); URL.revokeObjectURL(link.href);
                 },
-                
                 handleImport(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const data = JSON.parse(event.target.result);
-                            if (data.students && data.disciplinas) {
-                                App.utils.showModal('#modal', () => {
-                                    App.state.disciplinas = data.disciplinas;
-                                    App.state.students = data.students;
-                                    if (App.storage.save()) {
-                                        App.utils.showAlert(`Backup importado! Alunos e disciplinas foram restaurados.`);
-                                        this.init();
-                                    }
-                                });
-                                App.utils.doc('#modalTitle').textContent = 'Importar Dados de Alunos e Disciplinas';
-                                App.utils.doc('#modalMessage').textContent = 'Isto substituirá a lista de alunos e disciplinas atuais pelos dados do arquivo. As configurações da turma NÃO serão alteradas. Continuar?';
-                            } else { App.utils.showAlert('Arquivo de backup inválido. Deve conter as chaves "students" e "disciplinas".', 'error'); }
-                        } catch (err) {
-                            App.utils.showAlert('Erro ao ler o arquivo. Verifique se é um JSON válido.', 'error');
-                            console.error("Import Parse Error:", err);
-                        }
-                    };
-                    reader.readAsText(file);
-                    e.target.value = '';
+                    const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+                    reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (data.students && data.disciplinas && data.config) { App.utils.showModal('#modal', () => { const newId = data.id || crypto.randomUUID(); App.state.turmas[newId] = data; App.state.activeTurmaId = newId; if (App.storage.save()) { App.utils.showAlert(`Backup importado como nova turma: "${data.name}"!`); this.renderAll(); } }); App.utils.doc('#modalTitle').textContent = 'Importar Backup de Turma'; App.utils.doc('#modalMessage').textContent = 'Isto irá adicionar os dados do arquivo como uma NOVA TURMA. Continuar?'; } else { App.utils.showAlert('Arquivo de backup inválido.', 'error'); } } catch (err) { App.utils.showAlert('Erro ao ler o arquivo.', 'error'); } };
+                    reader.readAsText(file); e.target.value = '';
                 },
-                
                 showBulkImportModal() {
-                    const { config, disciplinas } = App.state;
-                    let headers = ['Matrícula', 'Nome'];
-                    for (let i = 0; i < config.numBimestres; i++) {
-                        disciplinas.forEach(d => headers.push(`${d} (Nota ${i + 1}B)`, `${d} (Faltas ${i + 1}B)`));
-                    }
-                    App.utils.doc('#importInstructions').innerHTML = `<p><strong>Atenção:</strong> A nota importada será atribuída à categoria 'Prova' de cada disciplina, e as demais ('Atividade', 'Trabalho') serão zeradas.</p><p><strong>Formato esperado (${headers.length} colunas):</strong><br>${headers.join('; ')}</p>`;
-                    App.utils.doc('#importPreview').innerHTML = '';
-                    App.utils.doc('#bulkDataInput').value = '';
-                    App.utils.doc('#importModalConfirm').disabled = true;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const { config, disciplinas } = activeTurma; let headers = ['Matrícula', 'Nome'];
+                    for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => headers.push(`${d} (Nota ${i + 1}B)`, `${d} (Faltas ${i + 1}B)`));
+                    App.utils.doc('#importInstructions').innerHTML = `<p><strong>Atenção:</strong> A nota importada será atribuída à 'Prova'.</p><p><strong>Formato (${headers.length} colunas):</strong><br>${headers.join('; ')}</p>`;
+                    App.utils.doc('#importPreview').innerHTML = ''; App.utils.doc('#bulkDataInput').value = ''; App.utils.doc('#importModalConfirm').disabled = true;
                     App.utils.showModal('#importModal');
                 },
-                
                 handleBulkDataParse() {
-                    const text = App.utils.doc('#bulkDataInput').value.trim();
-                    const lines = text.split('\n').filter(line => line.trim() !== '');
-                    const { config, disciplinas } = App.state;
-                    const expectedCols = 2 + (disciplinas.length * 2 * config.numBimestres);
-                    App.state.parsedStudents = [];
-                    let previewHtml = '<table><tr><th>Matrícula</th><th>Nome</th><th>Status</th></tr>';
-                    let hasErrors = false;
-                    lines.forEach(line => {
-                        const cols = line.split(';');
-                        if (cols.length !== expectedCols) {
-                            previewHtml += `<tr class="error-row"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>Erro: Número de colunas incorreto (${cols.length} de ${expectedCols}).</td></tr>`;
-                            hasErrors = true;
-                            return;
-                        }
-                        const [studentId, name, ...notasFaltas] = cols;
-                        const student = { studentId, name, bimestres: Array.from({ length: config.numBimestres }, () => ({})) };
-                        for (let i = 0; i < config.numBimestres; i++) {
-                            for (let j = 0; j < disciplinas.length; j++) {
-                                const nota = parseFloat(notasFaltas[(i * disciplinas.length * 2) + (j * 2)]?.replace(',', '.')) || 0;
-                                const faltas = parseInt(notasFaltas[(i * disciplinas.length * 2) + (j * 2) + 1]) || 0;
-                                student.bimestres[i][App.utils.toId(disciplinas[j])] = { atividade: 0, trabalho: 0, prova: nota, total: nota, faltas };
-                            }
-                        }
-                        App.state.parsedStudents.push(student);
-                        previewHtml += `<tr><td>${studentId}</td><td>${name}</td><td>Pronto para importar</td></tr>`;
-                    });
-                    previewHtml += '</table>';
-                    App.utils.doc('#importPreview').innerHTML = previewHtml;
-                    App.utils.doc('#importModalConfirm').disabled = hasErrors || App.state.parsedStudents.length === 0;
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    const text = App.utils.doc('#bulkDataInput').value.trim(); const lines = text.split('\n').filter(Boolean);
+                    const { config, disciplinas } = activeTurma; const expectedCols = 2 + (disciplinas.length * 2 * config.numBimestres);
+                    App.state.parsedStudents = []; let previewHtml = '<table><tr><th>Matrícula</th><th>Nome</th><th>Status</th></tr>'; let hasErrors = false;
+                    lines.forEach(line => { const cols = line.split(';'); if (cols.length !== expectedCols) { previewHtml += `<tr class="error-row"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>Erro: colunas incorretas.</td></tr>`; hasErrors = true; return; } const [studentId, name, ...notasFaltas] = cols; const student = { studentId, name, bimestres: Array.from({ length: config.numBimestres }, () => ({})) }; for (let i = 0; i < config.numBimestres; i++) { for (let j = 0; j < disciplinas.length; j++) { const nota = parseFloat(notasFaltas[(i * disciplinas.length * 2) + (j * 2)]?.replace(',', '.')) || 0; const faltas = parseInt(notasFaltas[(i * disciplinas.length * 2) + (j * 2) + 1]) || 0; student.bimestres[i][App.utils.toId(disciplinas[j])] = { atividade: 0, trabalho: 0, prova: nota, total: nota, faltas }; } } App.state.parsedStudents.push(student); previewHtml += `<tr><td>${studentId}</td><td>${name}</td><td>Pronto para importar</td></tr>`; });
+                    previewHtml += '</table>'; App.utils.doc('#importPreview').innerHTML = previewHtml; App.utils.doc('#importModalConfirm').disabled = hasErrors || App.state.parsedStudents.length === 0;
                 },
-                
                 confirmBulkImport() {
-                    if (App.state.parsedStudents.length === 0) return;
-                    
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma || App.state.parsedStudents.length === 0) return;
                     App.utils.doc('#importModal').classList.remove('visible');
-
-                    App.utils.showModal('#modal', () => {
-                        App.state.students.push(...App.state.parsedStudents);
-                        if (App.storage.save()) {
-                            App.utils.showAlert(`${App.state.parsedStudents.length} aluno(s) importado(s) com sucesso!`);
-                            this.renderAll();
-                        }
-                    });
-                    
-                    App.utils.doc('#modalTitle').textContent = 'Confirmar Importação em Massa';
-                    App.utils.doc('#modalMessage').textContent = `Você tem certeza que deseja adicionar ${App.state.parsedStudents.length} novo(s) aluno(s) à lista atual? Essa ação não pode ser desfeita.`;
+                    App.utils.showModal('#modal', () => { activeTurma.students.push(...App.state.parsedStudents); if (App.storage.save()) { App.utils.showAlert(`${App.state.parsedStudents.length} aluno(s) importado(s)!`); this.renderAll(); } });
+                    App.utils.doc('#modalTitle').textContent = 'Confirmar Importação'; App.utils.doc('#modalMessage').textContent = `Adicionar ${App.state.parsedStudents.length} novo(s) aluno(s) à turma atual?`;
                 },
-                
                 handleResetSystem() {
-                    App.utils.showModal('#modal', () => {
-                        localStorage.removeItem(App.storage.KEYS.STUDENTS);
-                        localStorage.removeItem(App.storage.KEYS.DISCIPLINAS);
-                        location.reload();
-                    });
-                    App.utils.doc('#modalTitle').textContent = 'Resetar Dados da Turma';
-                    App.utils.doc('#modalMessage').textContent = 'ATENÇÃO: Esta ação é irreversível e irá apagar a lista de DISCIPLINAS e TODOS os ALUNOS cadastrados. As configurações da turma serão mantidas. Deseja continuar?';
+                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
+                    App.utils.showModal('#modal', () => { activeTurma.students = []; activeTurma.disciplinas = ['Português', 'Matemática']; if(App.storage.save()) { App.utils.showAlert(`Dados da turma "${activeTurma.name}" resetados!`); this.renderAll(); } });
+                    App.utils.doc('#modalTitle').textContent = 'Resetar Dados da Turma'; App.utils.doc('#modalMessage').textContent = 'Isto irá apagar TODOS os alunos e disciplinas da turma ATIVA. Continuar?';
                 }
             },
-
-            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
-            init() {
-                this.storage.load();
-                this.view.init();
-            }
+            init() { this.storage.load(); this.view.init(); }
         };
-
         App.init();
     });
     </script>
