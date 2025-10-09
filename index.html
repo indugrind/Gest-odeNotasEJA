@@ -58,7 +58,6 @@
         .btn-secondary { background-color: var(--text-secondary-color); } .btn-secondary:hover { background-color: var(--text-color); }
         .btn-small { padding: 8px 12px; font-size: 0.9rem; }
         .grid { display: grid; gap: 20px; } .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } .grid-5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
@@ -131,7 +130,6 @@
             .header-controls { flex-direction: column; gap: 15px; align-items: center; }
             button, input, select, textarea { font-size: 1rem; padding: 10px 12px; }
 
-            /* NOVO: Estilos da Tabela Responsiva */
             .table-responsive { overflow-x: visible; }
             #studentsTable thead { display: none; }
             #studentsTable, #studentsTable tbody, #studentsTable tr, #studentsTable td { display: block; width: 100%; }
@@ -211,18 +209,17 @@
                 <div class="grid grid-2">
                     <div class="config-box">
                         <h3>🗓️ Estrutura do Ano Letivo</h3>
-                        <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="1"></div>
-                        <h3>💯 Pontuação por Disciplina (em cada bimestre)</h3>
-                        <div class="grid grid-3">
-                            <div class="form-group"><label for="maxAtividade">Atividades</label><input type="number" id="maxAtividade" min="0" step="0.1" value="0"></div>
-                            <div class="form-group"><label for="maxTrabalho">Trabalhos</label><input type="number" id="maxTrabalho" min="0" step="0.1" value="0"></div>
-                            <div class="form-group"><label for="maxProva">Prova</label><input type="number" id="maxProva" min="0" step="0.1" value="10"></div>
+                        <div class="form-group"><label for="numBimestres">Número de Bimestres</label><input type="number" id="numBimestres" min="1" max="4" value="4"></div>
+                        <h3>💯 Pontuação por Disciplina</h3>
+                        <div class="form-group">
+                            <label for="maxPontosDisciplina">Pontuação Máxima por Disciplina (em cada bimestre)</label>
+                            <input type="number" id="maxPontosDisciplina" min="1" step="1" value="50">
                         </div>
                     </div>
                     <div class="config-box">
                         <h3>📊 Critérios de Aprovação</h3>
-                        <div class="form-group"><label for="minNotaBimestre">Nota Mínima POR DISCIPLINA em cada bimestre</label><input type="number" id="minNotaBimestre" min="0" step="0.1" value="6"></div>
-                        <div class="form-group"><label for="minNotaTotal">Nota Mínima ANUAL (soma de todos)</label><input type="number" id="minNotaTotal" min="0" step="0.1" value="60"></div>
+                        <div class="form-group"><label for="minPontosBimestre">Pontuação Mínima POR BIMESTRE (soma)</label><input type="number" id="minPontosBimestre" min="0" step="1" value="30"></div>
+                        <div class="form-group"><label for="minPontosAnual">Pontuação Mínima ANUAL (soma final)</label><input type="number" id="minPontosAnual" min="0" step="1" value="60"></div>
                         <div id="approvalRuleSummary"></div>
                     </div>
                 </div>
@@ -258,7 +255,7 @@
                     <div class="bimestre-tabs" id="bimestreTabsContainer"></div>
                     <div id="bimestresContentContainer"></div>
                     <div class="grid grid-2" style="margin-top: 20px;">
-                        <div class="form-group"><label for="totalGeral">Total Anual (Soma de Todas as Disciplinas)</label><input type="text" id="totalGeral" class="total-display" readonly></div>
+                        <div class="form-group"><label for="totalGeral">Total Anual (Soma de Pontos)</label><input type="text" id="totalGeral" class="total-display" readonly></div>
                         <div class="form-group"><label for="statusFinal">Status Final</label><input type="text" id="statusFinal" class="total-display" readonly></div>
                     </div>
                     <div class="form-group">
@@ -340,16 +337,18 @@
     <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><h3 id="modalTitle"></h3><p id="modalMessage"></p><div class="modal-buttons"><button id="modalConfirm" class="btn-danger">Confirmar</button><button id="modalCancel" class="btn-secondary">Cancelar</button></div></div></div>
     <div id="detailsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="detailsModalTitle"><div class="modal"><h3 id="detailsModalTitle"></h3><p id="detailsModalSubtitle"></p><div class="chart-container"><canvas id="studentChart"></canvas></div><div class="modal-buttons"><button id="detailsModalClose" class="btn-secondary">Fechar</button></div></div></div>
     <div id="boletimModal" class="modal-overlay" role="dialog" aria-modal="true"><div class="modal"><div id="boletimContent"></div><div class="modal-buttons"><button id="printBoletim" class="btn-success">🖨️ Imprimir</button><button id="boletimModalClose" class="btn-secondary">Fechar</button></div></div></div>
-    <div id="importModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="importModalTitle"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. A nota a ser colada é a nota <strong>total</strong> da disciplina no bimestre. Use ponto (.) para decimais e separe colunas com ponto e vírgula (;).</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45.5;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
+    <div id="importModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="importModalTitle"><div class="modal"><h3 id="importModalTitle">Importação de Alunos em Massa</h3><p>Cole os dados da sua planilha. Separe colunas com ponto e vírgula (;). A nota a ser colada é a nota da disciplina no bimestre.</p><div id="importInstructions"></div><textarea id="bulkDataInput" placeholder="Ex: 123;João da Silva;45;2;..."></textarea><div id="importPreview"></div><div class="modal-buttons"><button id="importModalConfirm" class="btn-success" disabled>Confirmar Importação</button><button id="importModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
     <div id="disciplinasModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="disciplinasModalTitle"><div class="modal"><h3 id="disciplinasModalTitle">Adicionar Disciplinas em Massa</h3><p>Cole a lista de disciplinas abaixo, uma por linha.</p><textarea id="bulkDisciplinasInput"></textarea><div class="modal-buttons"><button id="disciplinasModalConfirm" class="btn-success">Salvar Lista</button><button id="disciplinasModalCancel" class="btn-secondary">Cancelar</button></div></div></div>
 
     <script>
     /**
      * NotaSys Pro - Academic Management System with Multi-Class Support
      *
-     * @version 3.2.0
+     * @version 3.5.0
      * @author Gemini (Refactored & Upgraded)
-     * Implementada tabela responsiva (formato de cards) para a lista de alunos em dispositivos móveis.
+     * - Lógica de pontuação e aprovação ajustada para o modelo da EJA.
+     * - Agora a pontuação é definida por disciplina, e a aprovação se baseia
+     * na soma mínima por bimestre e na soma total anual.
      */
     document.addEventListener('DOMContentLoaded', () => {
         const App = {
@@ -444,12 +443,32 @@
                         const turmasData = localStorage.getItem(this.KEYS.TURMAS);
                         if (turmasData) {
                             App.state.turmas = JSON.parse(turmasData);
+                            
+                            let migrated = false;
+                            Object.values(App.state.turmas).forEach(turma => {
+                                if (turma.config && (turma.config.maxPontosBimestre !== undefined || turma.config.version < "3.5.0")) {
+                                    console.log(`Migrando turma: ${turma.name}`);
+                                    turma.config.version = "3.5.0";
+                                    turma.config.numBimestres = turma.config.numBimestres || 4;
+                                    turma.config.maxPontosDisciplina = 50;
+                                    turma.config.minPontosBimestre = 30;
+                                    turma.config.minPontosAnual = 60;
+                                    delete turma.config.maxPontosBimestre;
+                                    delete turma.config.minNotaBimestre;
+                                    delete turma.config.minMediaFinal;
+                                    migrated = true;
+                                }
+                            });
+
+                            if (migrated) {
+                                App.utils.showAlert('Seus dados foram atualizados para o novo sistema de pontuação da EJA. Verifique as configurações.', 'warning', 10000);
+                                this.save(); 
+                            }
+
                             App.state.activeTurmaId = localStorage.getItem(this.KEYS.ACTIVE_TURMA_ID);
                             if (!App.state.activeTurmaId || !App.state.turmas[App.state.activeTurmaId]) {
                                 App.state.activeTurmaId = Object.keys(App.state.turmas)[0] || null;
                             }
-                        } else {
-                            this.migrateFromV2();
                         }
 
                         if (Object.keys(App.state.turmas).length === 0) {
@@ -494,25 +513,14 @@
                         id: crypto.randomUUID(), name: name, students: [],
                         disciplinas: ['Português', 'Matemática'],
                         config: {
-                            version: "3.2.0", numBimestres: 1, maxAtividade: 0, maxTrabalho: 0, maxProva: 10,
-                            minNotaBimestre: 6, minNotaTotal: 60, reportRanges: [20, 40, 60, 80, 100],
+                            version: "3.5.0",
+                            numBimestres: 4,
+                            maxPontosDisciplina: 50,
+                            minPontosBimestre: 30,
+                            minPontosAnual: 60,
+                            reportRanges: [20, 40, 60, 80, 100],
                         },
                     };
-                },
-                migrateFromV2() {
-                    const v2_configData = localStorage.getItem('notasys_pro_v2_config');
-                    if (!v2_configData) return;
-                    App.utils.showAlert('Dados antigos detectados. Migrando para o novo sistema de turmas...', 'warning', 6000);
-                    const newId = crypto.randomUUID();
-                    const newTurma = this.createDefaultTurma('Turma Migrada');
-                    newTurma.config = JSON.parse(v2_configData);
-                    newTurma.disciplinas = JSON.parse(localStorage.getItem('notasys_pro_v2_disciplinas') || '[]');
-                    newTurma.students = JSON.parse(localStorage.getItem('notasys_pro_v2_students') || '[]');
-                    App.state.turmas[newId] = newTurma;
-                    App.state.activeTurmaId = newId;
-                    localStorage.removeItem('notasys_pro_v2_config');
-                    localStorage.removeItem('notasys_pro_v2_disciplinas');
-                    localStorage.removeItem('notasys_pro_v2_students');
                 }
             },
 
@@ -520,32 +528,33 @@
             logic: {
                 calculateTotalsAndStatus(studentData) {
                     try {
-                        let totalGeral = 0, totalFaltas = 0, abaixoMinimoDisciplina = false;
+                        let totalGeral = 0;
                         const bimestreTotals = [];
                         const activeTurma = App.getActiveTurma();
-                        if (!activeTurma) return { totalGeral: '0.0', totalFaltas: 0, status: { text: 'Erro', class: 'status-Reprovado' }, average: 0, bimestreTotals: [] };
+                        if (!activeTurma) return { totalGeral: '0.0', status: { text: 'Erro', class: 'status-Reprovado' }, bimestreTotals: [] };
                         const { config, disciplinas } = activeTurma;
-                        const maxScorePerBimestre = config.maxAtividade + config.maxTrabalho + config.maxProva;
+
                         for (let i = 0; i < config.numBimestres; i++) {
                             let totalBimestre = 0;
                             disciplinas.forEach(d => {
                                 const nota = studentData.bimestres[i]?.[App.utils.toId(d)];
                                 if (nota) {
-                                    totalGeral += nota.total || 0; totalBimestre += nota.total || 0;
-                                    totalFaltas += nota.faltas || 0;
-                                    if (nota.total < config.minNotaBimestre) abaixoMinimoDisciplina = true;
+                                    totalBimestre += nota.total || 0;
                                 }
                             });
                             bimestreTotals.push(totalBimestre);
                         }
-                        const maxScoreTotalPossible = maxScorePerBimestre * config.numBimestres * disciplinas.length;
-                        const average = maxScoreTotalPossible > 0 ? (totalGeral / maxScoreTotalPossible) * 10 : 0;
-                        const isAprovado = (totalGeral >= config.minNotaTotal && !abaixoMinimoDisciplina);
+                        
+                        totalGeral = bimestreTotals.reduce((acc, current) => acc + current, 0);
+
+                        const abaixoMinimoBimestre = bimestreTotals.some(total => total < config.minPontosBimestre);
+                        const isAprovado = !abaixoMinimoBimestre && totalGeral >= config.minPontosAnual;
+
                         const status = { text: isAprovado ? 'Aprovado' : 'Reprovado', class: isAprovado ? 'status-Aprovado' : 'status-Reprovado' };
-                        return { totalGeral: totalGeral.toFixed(1), totalFaltas, status, average, bimestreTotals }; 
+                        return { totalGeral: totalGeral.toFixed(1), status, bimestreTotals }; 
                     } catch (e) {
                         console.error("Error calculating totals:", e);
-                        return { totalGeral: '0.0', totalFaltas: 0, status: { text: 'Erro', class: 'status-Reprovado' }, average: 0, bimestreTotals: [] }; 
+                        return { totalGeral: '0.0', status: { text: 'Erro', class: 'status-Reprovado' }, bimestreTotals: [] }; 
                     }
                 },
                 validateStudentData(data, isEditing) {
@@ -559,9 +568,11 @@
                 },
                 validateConfig(config) {
                     if (config.numBimestres < 1 || config.numBimestres > 4) return "Número de bimestres deve ser entre 1 e 4.";
-                    if (config.maxAtividade < 0 || config.maxTrabalho < 0 || config.maxProva < 0) return "Pontuações máximas não podem ser negativas.";
-                    if ((config.maxAtividade + config.maxTrabalho + config.maxProva) <= 0) return "A soma das pontuações máximas por bimestre deve ser maior que zero.";
-                    if (config.minNotaBimestre < 0 || config.minNotaTotal < 0) return "Notas mínimas não podem ser negativas.";
+                    if (config.maxPontosDisciplina <= 0) return "A pontuação máxima por disciplina deve ser maior que zero.";
+                    if (config.minPontosBimestre < 0 || config.minPontosAnual < 0) return "As pontuações mínimas não podem ser negativas.";
+                    if (config.minPontosAnual < config.minPontosBimestre * config.numBimestres) {
+                        return "A pontuação mínima anual deve ser igual ou maior que a soma das pontuações mínimas de todos os bimestres.";
+                    }
                     return null;
                 }
             },
@@ -593,7 +604,7 @@
                     App.utils.doc('#student-form').addEventListener('submit', this.handleFormSubmit.bind(this));
                     App.utils.doc('#student-form').addEventListener('input', e => {
                         if (e.target.classList.contains('nota-input')) {
-                            this.validateNoteSum(e.target); this.validateAndClampInput(e);
+                            this.validateAndClampInput(e);
                             App.utils.debounce(() => this.updateFormTotals(), 400)();
                         }
                     });
@@ -685,19 +696,26 @@
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const { config } = activeTurma;
                     for (const key in config) {
-                        if (key === 'reportRanges') config.reportRanges.forEach((val, i) => { const el = App.utils.doc(`#range${i + 1}`); if (el) el.value = val; });
-                        else { const el = App.utils.doc(`#${key}`); if (el) el.value = config[key]; }
+                        if (key === 'reportRanges') {
+                           config.reportRanges.forEach((val, i) => { const el = App.utils.doc(`#range${i + 1}`); if (el) el.value = val; });
+                        }
+                        else { 
+                            const el = App.utils.doc(`#${key}`); if (el) el.value = config[key]; 
+                        }
                     }
                 },
                 updateConfigSummary() {
                     const tempConfig = this.getTempConfig();
-                    App.utils.doc('#approvalRuleSummary').innerHTML = `<strong>Regra Atual:</strong> Mínimo de <strong>${tempConfig.minNotaBimestre}</strong> pts por disciplina/bimestre E <strong>${tempConfig.minNotaTotal}</strong> pts no total do ano.`;
+                    App.utils.doc('#approvalRuleSummary').innerHTML = `<strong>Regra de Aprovação:</strong><br>
+                    - Mínimo de <strong>${tempConfig.minPontosBimestre}</strong> pontos em CADA bimestre.<br>
+                    - Mínimo de <strong>${tempConfig.minPontosAnual}</strong> pontos na SOMA FINAL do ano.`;
                 },
                 getTempConfig() {
                     return {
-                        numBimestres: parseInt(App.utils.doc('#numBimestres').value) || 1, maxAtividade: parseFloat(App.utils.doc('#maxAtividade').value) || 0,
-                        maxTrabalho: parseFloat(App.utils.doc('#maxTrabalho').value) || 0, maxProva: parseFloat(App.utils.doc('#maxProva').value) || 0,
-                        minNotaBimestre: parseFloat(App.utils.doc('#minNotaBimestre').value) || 0, minNotaTotal: parseFloat(App.utils.doc('#minNotaTotal').value) || 0,
+                        numBimestres: parseInt(App.utils.doc('#numBimestres').value) || 1, 
+                        maxPontosDisciplina: parseFloat(App.utils.doc('#maxPontosDisciplina').value) || 0,
+                        minPontosBimestre: parseFloat(App.utils.doc('#minPontosBimestre').value) || 0, 
+                        minPontosAnual: parseFloat(App.utils.doc('#minPontosAnual').value) || 0,
                         reportRanges: Array.from(App.utils.docAll('.report-range-input')).map(el => parseFloat(el.value) || 0)
                     };
                 },
@@ -738,8 +756,8 @@
                     const list = App.utils.doc('#studentsList');
                     theadRow.innerHTML = '';
                     let headersHTML = `<th data-sort="name">Nome</th><th data-sort="studentId">Matrícula</th>`;
-                    for (let i = 0; i < config.numBimestres; i++) headersHTML += `<th data-sort="bimestreTotals.${i}">${i + 1}º Bim.</th>`;
-                    headersHTML += `<th data-sort="totalFaltas">Faltas</th><th data-sort="totalGeral">Pontos</th><th data-sort="average">Média</th><th data-sort="status.text">Status</th><th>Ações</th>`;
+                    for (let i = 0; i < config.numBimestres; i++) headersHTML += `<th data-sort="bimestreTotals.${i}">${i + 1}º Bim. (Pontos)</th>`;
+                    headersHTML += `<th data-sort="totalGeral">Total Anual</th><th data-sort="status.text">Status</th><th>Ações</th>`;
                     theadRow.innerHTML = headersHTML;
                     list.innerHTML = '';
                     const query = App.utils.doc('#searchStudent').value.toLowerCase();
@@ -751,26 +769,24 @@
                         return App.state.sort.order === 'asc' ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
                     });
                     App.utils.doc('#emptyMessage').classList.toggle('hidden', sorted.length > 0);
-                    sorted.forEach(s => {
-                        const idx = students.findIndex(st => st.studentId === s.studentId);
+                    sorted.forEach((s, index) => {
                         const row = list.insertRow();
                         let rowHTML = `
                             <td data-label="Nome">${s.name}</td>
                             <td data-label="Matrícula">${s.studentId}</td>`;
                         for (let i = 0; i < config.numBimestres; i++) {
-                            rowHTML += `<td data-label="${i + 1}º Bim.">${(s.bimestreTotals[i] || 0).toFixed(1)}</td>`;
+                            const totalBim = s.bimestreTotals[i] || 0;
+                            rowHTML += `<td data-label="${i + 1}º Bim." style="color: ${totalBim < config.minPontosBimestre ? 'var(--danger)' : 'inherit'}">${totalBim.toFixed(1)}</td>`;
                         }
                         rowHTML += `
-                            <td data-label="Faltas">${s.totalFaltas || 0}</td>
-                            <td data-label="Pontos (Total)">${s.totalGeral}</td>
-                            <td data-label="Média (0-10)">${(s.average || 0).toFixed(1)}</td>
+                            <td data-label="Total Anual">${s.totalGeral}</td>
                             <td data-label="Status" class="${s.status.class || ''}">${s.status.text}</td>
                             <td class="actions-cell">
                                 <div class="actions">
-                                    <button class="btn-small" data-action="boletim" data-index="${idx}" title="Gerar Boletim">📄</button>
-                                    <button class="btn-small" data-action="details" data-index="${idx}" title="Ver Gráfico">📊</button>
-                                    <button class="btn-small" data-action="edit" data-index="${idx}" title="Editar">✏️</button>
-                                    <button class="btn-small btn-danger" data-action="delete" data-index="${idx}" title="Excluir">🗑️</button>
+                                    <button class="btn-small" data-action="boletim" data-index="${index}" title="Gerar Boletim">📄</button>
+                                    <button class="btn-small" data-action="details" data-index="${index}" title="Ver Gráfico">📊</button>
+                                    <button class="btn-small" data-action="edit" data-index="${index}" title="Editar">✏️</button>
+                                    <button class="btn-small btn-danger" data-action="delete" data-index="${index}" title="Excluir">🗑️</button>
                                 </div>
                             </td>`;
                         row.innerHTML = rowHTML;
@@ -784,6 +800,10 @@
                     const { numBimestres } = activeTurma.config;
                     const tabsContainer = App.utils.doc('#bimestreTabsContainer'), contentContainer = App.utils.doc('#bimestresContentContainer');
                     tabsContainer.innerHTML = ''; contentContainer.innerHTML = '';
+                    if (activeTurma.disciplinas.length === 0) {
+                        contentContainer.innerHTML = `<p class="alert alert-warning">Cadastre pelo menos uma disciplina para lançar as notas.</p>`;
+                        return;
+                    }
                     for (let i = 0; i < numBimestres; i++) {
                         tabsContainer.innerHTML += `<div class="bimestre-tab ${i === 0 ? 'active' : ''}" data-bimestre="${i}">${i + 1}º Bimestre</div>`;
                         contentContainer.innerHTML += `<div id="bimestre${i}" class="bimestre-content ${i > 0 ? 'hidden' : ''}"><h3>📊 Notas do ${i + 1}º Bimestre</h3><div id="disciplinasBimestre${i}"></div></div>`;
@@ -794,10 +814,23 @@
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const container = App.utils.doc(`#disciplinasBimestre${bimestreIndex}`); if (!container) return;
                     container.innerHTML = '';
+
+                    const { maxPontosDisciplina } = activeTurma.config;
+
                     activeTurma.disciplinas.forEach(nome => {
                         const id = App.utils.toId(nome);
                         const section = document.createElement('details'); section.className = 'disciplina-section'; section.open = true;
-                        section.innerHTML = `<summary><h4>${nome}</h4></summary><div class="disciplina-content grid grid-5"><div class="form-group"><label for="${id}${bimestreIndex}_atividade">Ativ.</label><input type="number" id="${id}${bimestreIndex}_atividade" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_trabalho">Trab.</label><input type="number" id="${id}${bimestreIndex}_trabalho" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_prova">Prova</label><input type="number" id="${id}${bimestreIndex}_prova" class="nota-input" min="0" step="0.1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_faltas">Faltas</label><input type="number" id="${id}${bimestreIndex}_faltas" class="nota-input" min="0" step="1" value="0"></div><div class="form-group"><label for="${id}${bimestreIndex}_total">Total</label><input type="text" id="${id}${bimestreIndex}_total" class="total-display" readonly value="0.0"></div></div>`;
+                        section.innerHTML = `<summary><h4>${nome}</h4></summary>
+                        <div class="disciplina-content grid grid-2">
+                            <div class="form-group">
+                                <label for="${id}${bimestreIndex}_nota">Nota (Máx: ${maxPontosDisciplina})</label>
+                                <input type="number" id="${id}${bimestreIndex}_nota" class="nota-input" min="0" max="${maxPontosDisciplina}" step="0.1" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="${id}${bimestreIndex}_faltas">Faltas</label>
+                                <input type="number" id="${id}${bimestreIndex}_faltas" class="nota-input" min="0" step="1" value="0">
+                            </div>
+                        </div>`;
                         container.appendChild(section);
                     });
                 },
@@ -808,41 +841,36 @@
                     App.utils.doc(`#statusFinal`).value = status.text;
                     App.utils.doc(`#statusFinal`).className = `total-display ${status.class || ''}`;
                 },
-                validateNoteSum(targetInput) {
-                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
-                    const idParts = targetInput.id.match(/^([a-z0-9_]+)(\d+)_(\w+)$/); if(!idParts) return;
-                    const [ , baseId, bimestreIndex] = idParts; const { config } = activeTurma;
-                    const maxTotal = config.maxAtividade + config.maxTrabalho + config.maxProva;
-                    const atv = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_atividade`).value) || 0;
-                    const trb = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_trabalho`).value) || 0;
-                    const prv = parseFloat(App.utils.doc(`#${baseId}${bimestreIndex}_prova`).value) || 0;
-                    const currentSum = atv + trb + prv;
-                    if (currentSum > maxTotal && maxTotal > 0) {
-                        targetInput.value = (parseFloat(targetInput.value) - (currentSum - maxTotal)).toFixed(1);
-                        App.utils.showAlert(`Soma excede o máximo (${maxTotal}). Valor ajustado.`, 'warning'); this.updateFormTotals();
-                    }
-                },
                 validateAndClampInput(e) {
-                    const activeTurma = App.getActiveTurma(); if (!activeTurma) return; const input = e.target;
-                    if (!input.value) return; let value = parseFloat(input.value); const min = parseFloat(input.min) ?? 0;
-                    if (input.id.includes('faltas')) { if (value < min || !Number.isInteger(value)) input.value = Math.max(min, Math.floor(value) || 0); return; }
-                    const { config } = activeTurma; let max;
-                    if (input.id.includes('atividade')) max = config.maxAtividade; else if (input.id.includes('trabalho')) max = config.maxTrabalho; else if (input.id.includes('prova')) max = config.maxProva;
-                    if (max !== undefined && value > max) input.value = max; if (value < min) input.value = min;
+                    const input = e.target;
+                    if (!input.value) return;
+                    let value = parseFloat(input.value);
+                    const min = parseFloat(input.min) ?? 0;
+                    const max = parseFloat(input.max);
+                    
+                    if (input.id.includes('faltas')) {
+                        if (value < min || !Number.isInteger(value)) input.value = Math.max(min, Math.floor(value) || 0);
+                        return;
+                    }
+                    
+                    if (!isNaN(max) && value > max) input.value = max;
+                    if (value < min) input.value = min;
                 },
                 getFormData() {
                     const activeTurma = App.getActiveTurma();
                     const studentData = { bimestres: [], disciplinas: activeTurma.disciplinas };
-                    const { config } = activeTurma; const maxTotal = config.maxAtividade + config.maxTrabalho + config.maxProva;
+                    if (!activeTurma) return studentData;
+                    
+                    const { config, disciplinas } = activeTurma;
+                    
                     for (let i = 0; i < config.numBimestres; i++) {
                         studentData.bimestres[i] = {};
-                        activeTurma.disciplinas.forEach(d => {
+                        disciplinas.forEach(d => {
                             const id = App.utils.toId(d); const doc = App.utils.doc;
-                            const atv = parseFloat(doc(`#${id}${i}_atividade`)?.value) || 0, trb = parseFloat(doc(`#${id}${i}_trabalho`)?.value) || 0;
-                            const prv = parseFloat(doc(`#${id}${i}_prova`)?.value) || 0, faltas = parseInt(doc(`#${id}${i}_faltas`)?.value) || 0;
-                            const total = Math.min(atv + trb + prv, maxTotal);
-                            if (doc(`#${id}${i}_total`)) doc(`#${id}${i}_total`).value = total.toFixed(1);
-                            studentData.bimestres[i][id] = { total, faltas, atividade: atv, trabalho: trb, prova: prv };
+                            const nota = parseFloat(doc(`#${id}${i}_nota`)?.value) || 0;
+                            const faltas = parseInt(doc(`#${id}${i}_faltas`)?.value) || 0;
+                            const total = Math.min(nota, config.maxPontosDisciplina);
+                            studentData.bimestres[i][id] = { total, faltas, nota };
                         });
                     }
                     studentData.name = App.utils.doc('#studentName').value.trim(); studentData.studentId = App.utils.doc('#studentId').value.trim();
@@ -899,8 +927,10 @@
                     for (let i = 0; i < activeTurma.config.numBimestres; i++) {
                         activeTurma.disciplinas.forEach(d => {
                             const id = App.utils.toId(d); const nota = student.bimestres[i]?.[id] || {};
-                            doc(`#${id}${i}_atividade`).value = nota.atividade || 0; doc(`#${id}${i}_trabalho`).value = nota.trabalho || 0;
-                            doc(`#${id}${i}_prova`).value = nota.prova || 0; doc(`#${id}${i}_faltas`).value = nota.faltas || 0;
+                            const notaInput = doc(`#${id}${i}_nota`);
+                            if (notaInput) notaInput.value = nota.nota || 0;
+                            const faltasInput = doc(`#${id}${i}_faltas`);
+                            if (faltasInput) faltasInput.value = nota.faltas || 0;
                         });
                     }
                     this.updateFormTotals();
@@ -913,12 +943,25 @@
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const target = e.target.closest('button'); if (!target) return;
                     const action = target.dataset.action; const index = parseInt(target.dataset.index);
-                    const student = activeTurma.students[index]; if (!student) return;
+                    
+                    const query = App.utils.doc('#searchStudent').value.toLowerCase();
+                    const filtered = activeTurma.students.filter(s => s.name.toLowerCase().includes(query) || String(s.studentId).toLowerCase().includes(query));
+                    const sorted = [...filtered].sort((a, b) => {
+                        const get = (obj, path) => path.split('.').reduce((o, i) => (o ? o[i] : undefined), obj);
+                        const valA = get(a, App.state.sort.column), valB = get(b, App.state.sort.column);
+                        if (typeof valA === 'string') return App.state.sort.order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                        return App.state.sort.order === 'asc' ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
+                    });
+                    const student = sorted[index];
+                    if (!student) return;
+
+                    const originalIndex = activeTurma.students.findIndex(s => s.studentId === student.studentId);
+
                     switch (action) {
                         case 'edit': this.populateForm(student); break;
                         case 'delete':
                             App.utils.showModal('#modal', () => {
-                                activeTurma.students.splice(index, 1);
+                                activeTurma.students.splice(originalIndex, 1);
                                 if (App.storage.save()) { this.renderAll(); App.utils.showAlert(`"${student.name}" excluído!`); }
                             });
                             App.utils.doc('#modalTitle').textContent = 'Excluir Aluno';
@@ -940,8 +983,8 @@
                 handleSort(e) {
                     const column = e.target.dataset.sort; if (!column) return;
                     const { sort } = App.state;
-                    sort.column = (sort.column === column && sort.order === 'asc') ? column : column;
                     sort.order = (sort.column === column && sort.order === 'asc') ? 'desc' : 'asc';
+                    sort.column = column;
                     this.renderStudents();
                 },
                 switchBimestreTab(bimestreIndex) {
@@ -962,23 +1005,42 @@
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     if (typeof Chart === 'undefined') return App.utils.showAlert('Gráfico indisponível offline.', 'error');
                     App.utils.doc('#detailsModalTitle').textContent = `Desempenho de: ${student.name}`;
-                    App.utils.doc('#detailsModalSubtitle').textContent = `Média Geral: ${(student.average || 0).toFixed(1)} | Status: ${student.status.text}`;
+                    App.utils.doc('#detailsModalSubtitle').textContent = `Pontuação Total: ${student.totalGeral} | Status: ${student.status.text}`;
                     const { config, disciplinas } = activeTurma; const labels = disciplinas;
                     const data = labels.map(d => { let total = 0; const id = App.utils.toId(d); for (let i = 0; i < config.numBimestres; i++) total += student.bimestres[i]?.[id]?.total || 0; return total; });
-                    const maxScorePerSubject = (config.maxAtividade + config.maxTrabalho + config.maxProva) * config.numBimestres;
+                    
+                    const maxScorePerSubjectTotal = config.maxPontosDisciplina * config.numBimestres;
+
                     if (App.state.charts.studentChart) App.state.charts.studentChart.destroy();
                     const ctx = App.utils.doc('#studentChart').getContext('2d');
-                    App.state.charts.studentChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Pontuação Total', data, backgroundColor: '#F2C94C' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: maxScorePerSubject > 0 ? maxScorePerSubject : 100 } }, plugins: { legend: { display: false } } } });
+                    App.state.charts.studentChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Pontuação Total', data, backgroundColor: '#F2C94C' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: maxScorePerSubjectTotal > 0 ? maxScorePerSubjectTotal : 100 } }, plugins: { legend: { display: false } } } });
                     App.utils.showModal('#detailsModal');
                 },
                 showBoletim(student) {
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const { config, disciplinas } = activeTurma;
+                    
                     let content = `<h3>Boletim - ${student.name}</h3><p><strong>Matrícula:</strong> ${student.studentId}</p><table><thead><tr><th>Disciplina</th>`;
-                    for (let i = 0; i < config.numBimestres; i++) content += `<th>${i + 1}º Bim.</th>`;
-                    content += `<th>Total</th></tr></thead><tbody>`;
-                    disciplinas.forEach(d => { let totalDisc = 0; const id = App.utils.toId(d); content += `<tr><td>${d}</td>`; for (let i = 0; i < config.numBimestres; i++) { const nota = student.bimestres[i]?.[id]?.total || 0; totalDisc += nota; content += `<td>${nota.toFixed(1)}</td>`; } content += `<td><strong>${totalDisc.toFixed(1)}</strong></td></tr>`; });
-                    content += `</tbody></table><br><strong>Total de Pontos Anual: ${student.totalGeral}</strong><br><strong>Status Final: ${student.status.text}</strong>`;
+                    for (let i = 0; i < config.numBimestres; i++) content += `<th>${i + 1}º Bim. (Pontos)</th>`;
+                    content += `<th>Total (Pontos)</th></tr></thead><tbody>`;
+                    
+                    disciplinas.forEach(d => { 
+                        let totalDisc = 0; const id = App.utils.toId(d); 
+                        content += `<tr><td>${d}</td>`; 
+                        for (let i = 0; i < config.numBimestres; i++) { 
+                            const nota = student.bimestres[i]?.[id]?.total || 0; 
+                            totalDisc += nota; 
+                            content += `<td>${nota.toFixed(1)}</td>`; 
+                        } 
+                        content += `<td><strong>${totalDisc.toFixed(1)}</strong></td></tr>`; 
+                    });
+                    
+                    content += `</tbody><tfoot><tr><td><strong>TOTAIS DO BIMESTRE</strong></td>`;
+                    student.bimestreTotals.forEach(total => {
+                        content += `<td><strong>${total.toFixed(1)}</strong></td>`;
+                    });
+                    content += `<td><strong>${student.totalGeral}</strong></td>`;
+                    content += `</tr></tfoot></table><br><strong>Total de Pontos Anual: ${student.totalGeral}</strong><br><strong>Status Final: ${student.status.text}</strong>`;
                     App.utils.doc('#boletimContent').innerHTML = content; App.utils.showModal('#boletimModal');
                 },
                 renderAdvancedReports() {
@@ -996,10 +1058,12 @@
                 updateAdvancedChart() {
                     const activeTurma = App.getActiveTurma(); if (!activeTurma || typeof Chart === 'undefined') return;
                     const subjectName = App.utils.doc('#reportSubject').value; if (!subjectName) return;
-                    const subjectId = App.utils.toId(subjectName); const { config, students } = activeTurma;
+                    const subjectId = App.utils.toId(subjectName); const { config, students, disciplinas } = activeTurma;
                     const rangesConfig = config.reportRanges; const labels = [`0-${rangesConfig[0]}%`, ...rangesConfig.slice(0, -1).map((r, i) => `${r + 1}-${rangesConfig[i + 1]}%`)];
                     const ranges = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
-                    const maxScoreTotal = (config.maxAtividade + config.maxTrabalho + config.maxProva) * config.numBimestres;
+                    
+                    const maxScoreTotal = config.maxPontosDisciplina * config.numBimestres;
+
                     if (maxScoreTotal > 0) {
                         students.forEach(s => { let totalNota = 0; for (let i = 0; i < config.numBimestres; i++) totalNota += s.bimestres[i]?.[subjectId]?.total || 0; const percent = (totalNota / maxScoreTotal) * 100; for (let i = 0; i < rangesConfig.length; i++) { const prevRange = i > 0 ? rangesConfig[i-1] : 0; if (percent > prevRange && percent <= rangesConfig[i]) { ranges[labels[i]]++; break; } } });
                     }
@@ -1010,13 +1074,14 @@
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const list = App.utils.doc('#disciplinasList'); list.innerHTML = '';
                     activeTurma.disciplinas.forEach(d => { list.innerHTML += `<span class="disciplina-tag">${d}<button data-disciplina="${d}" title="Remover">×</button></span>`; });
+                    this.updateConfigSummary();
                 },
                 handleAddDisciplina() {
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const input = App.utils.doc('#novaDisciplina'); const nome = input.value.trim(); if (!nome) return;
                     if (activeTurma.disciplinas.map(d => d.toLowerCase()).includes(nome.toLowerCase())) return App.utils.showAlert('Essa disciplina já existe.', 'warning');
                     const action = () => { activeTurma.disciplinas.push(nome); if (App.storage.save()) { App.utils.showAlert('Disciplina adicionada!'); this.renderAll(); input.value = ''; } };
-                    if (activeTurma.students.length > 0) { App.utils.showModal('#modal', action); App.utils.doc('#modalTitle').textContent = 'Adicionar Disciplina'; App.utils.doc('#modalMessage').textContent = 'Adicionar uma nova disciplina irá afetar todos os alunos cadastrados nesta turma. Continuar?'; } else action();
+                    if (activeTurma.students.length > 0) { App.utils.showModal('#modal', action); App.utils.doc('#modalTitle').textContent = 'Adicionar Disciplina'; App.utils.doc('#modalMessage').textContent = 'Adicionar uma nova disciplina irá afetar todos os alunos cadastrados. Continuar?'; } else action();
                 },
                 handleDisciplinaRemove(e) {
                     const activeTurma = App.getActiveTurma(); if (!activeTurma || !e.target.dataset.disciplina) return;
@@ -1035,7 +1100,7 @@
                     const { config, disciplinas, students } = activeTurma; let csvContent = "data:text/csv;charset=utf-8,"; let headers = ['Matricula', 'Nome'];
                     for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => headers.push(`${d}_Nota_Bim${i + 1}`, `${d}_Faltas_Bim${i + 1}`));
                     headers.push('Total_Pontos', 'Status'); csvContent += headers.join(';') + '\r\n';
-                    students.forEach(s => { let row = [`"${s.studentId}"`, `"${s.name}"`]; for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => { const nota = s.bimestres[i]?.[App.utils.toId(d)]; row.push(nota?.total || 0); row.push(nota?.faltas || 0); }); row.push(s.totalGeral, s.status.text); csvContent += row.join(';') + '\r\n'; });
+                    students.forEach(s => { let row = [`"${s.studentId}"`, `"${s.name}"`]; for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => { const nota = s.bimestres[i]?.[App.utils.toId(d)]; row.push(nota?.nota || 0); row.push(nota?.faltas || 0); }); row.push(s.totalGeral, s.status.text); csvContent += row.join(';') + '\r\n'; });
                     const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `export_turma_${activeTurma.name}.csv`); link.click(); link.remove();
                 },
                 backupData() {
@@ -1053,8 +1118,8 @@
                 showBulkImportModal() {
                     const activeTurma = App.getActiveTurma(); if (!activeTurma) return;
                     const { config, disciplinas } = activeTurma; let headers = ['Matrícula', 'Nome'];
-                    for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => headers.push(`${d} (Nota ${i + 1}B)`, `${d} (Faltas ${i + 1}B)`));
-                    App.utils.doc('#importInstructions').innerHTML = `<p><strong>Atenção:</strong> A nota importada será atribuída à 'Prova'.</p><p><strong>Formato (${headers.length} colunas):</strong><br>${headers.join('; ')}</p>`;
+                    for (let i = 0; i < config.numBimestres; i++) disciplinas.forEach(d => headers.push(`${d} (Nota Bim ${i + 1})`, `${d} (Faltas Bim ${i + 1})`));
+                    App.utils.doc('#importInstructions').innerHTML = `<p><strong>Formato (${headers.length} colunas):</strong><br>${headers.join('; ')}</p>`;
                     App.utils.doc('#importPreview').innerHTML = ''; App.utils.doc('#bulkDataInput').value = ''; App.utils.doc('#importModalConfirm').disabled = true;
                     App.utils.showModal('#importModal');
                 },
@@ -1063,7 +1128,7 @@
                     const text = App.utils.doc('#bulkDataInput').value.trim(); const lines = text.split('\n').filter(Boolean);
                     const { config, disciplinas } = activeTurma; const expectedCols = 2 + (disciplinas.length * 2 * config.numBimestres);
                     App.state.parsedStudents = []; let previewHtml = '<table><tr><th>Matrícula</th><th>Nome</th><th>Status</th></tr>'; let hasErrors = false;
-                    lines.forEach(line => { const cols = line.split(';'); if (cols.length !== expectedCols) { previewHtml += `<tr class="error-row"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>Erro: colunas incorretas.</td></tr>`; hasErrors = true; return; } const [studentId, name, ...notasFaltas] = cols; const student = { studentId, name, bimestres: Array.from({ length: config.numBimestres }, () => ({})) }; for (let i = 0; i < config.numBimestres; i++) { for (let j = 0; j < disciplinas.length; j++) { const nota = parseFloat(notasFaltas[(i * disciplinas.length * 2) + (j * 2)]?.replace(',', '.')) || 0; const faltas = parseInt(notasFaltas[(i * disciplinas.length * 2) + (j * 2) + 1]) || 0; student.bimestres[i][App.utils.toId(disciplinas[j])] = { atividade: 0, trabalho: 0, prova: nota, total: nota, faltas }; } } App.state.parsedStudents.push(student); previewHtml += `<tr><td>${studentId}</td><td>${name}</td><td>Pronto para importar</td></tr>`; });
+                    lines.forEach(line => { const cols = line.split(';'); if (cols.length !== expectedCols) { previewHtml += `<tr class="error-row"><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>Erro: ${cols.length} colunas encontradas, ${expectedCols} esperadas.</td></tr>`; hasErrors = true; return; } const [studentId, name, ...notasFaltas] = cols; const student = { studentId, name, bimestres: Array.from({ length: config.numBimestres }, () => ({})) }; for (let i = 0; i < config.numBimestres; i++) { for (let j = 0; j < disciplinas.length; j++) { let nota = parseFloat(notasFaltas[(i * disciplinas.length * 2) + (j * 2)]?.replace(',', '.')) || 0; nota = Math.min(nota, config.maxPontosDisciplina); const faltas = parseInt(notasFaltas[(i * disciplinas.length * 2) + (j * 2) + 1]) || 0; student.bimestres[i][App.utils.toId(disciplinas[j])] = { nota, total: nota, faltas }; } } App.state.parsedStudents.push(student); previewHtml += `<tr><td>${studentId}</td><td>${name}</td><td>Pronto para importar</td></tr>`; });
                     previewHtml += '</table>'; App.utils.doc('#importPreview').innerHTML = previewHtml; App.utils.doc('#importModalConfirm').disabled = hasErrors || App.state.parsedStudents.length === 0;
                 },
                 confirmBulkImport() {
